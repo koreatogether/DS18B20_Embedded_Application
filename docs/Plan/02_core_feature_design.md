@@ -1,3 +1,25 @@
+### 센서 자동 탐지 및 주소 관리 로직
+
+- **설계 의도:**
+	- 시스템이 부팅되거나 사용자가 요청할 때, 1-Wire 버스에 연결된 모든 DS18B20 센서를 자동으로 탐지하여 고유 8바이트 주소를 수집/저장합니다.
+	- 센서 주소 목록은 TemperatureSensorManager가 관리하며, 센서별 온도 측정/ID 매핑의 기준이 됩니다.
+
+- **구조 및 책임:**
+	- discoverSensors() 메서드는 ITemperatureSensor 인터페이스(실제 하드웨어 드라이버)를 통해 센서 주소를 반복적으로 검색합니다.
+	- 중복 없이 주소 벡터(sensorAddresses_)에 저장하고, 센서 개수에 맞춰 sensorIds_ 벡터도 동기화합니다.
+	- 센서가 추가/제거될 경우에도 일관된 주소 관리가 가능하도록 설계합니다.
+
+- **주요 흐름:**
+	1. discoverSensors() 호출 시 기존 주소/ID 목록 초기화
+	2. ITemperatureSensor::search() 등 하드웨어 API로 1-Wire 버스의 모든 센서 주소 탐색
+	3. 각 주소를 sensorAddresses_에 저장, sensorIds_는 빈 문자열로 초기화
+	4. getSensorCount(), getSensorAddress(), set/getSensorId() 등에서 이 목록을 활용
+
+- **예외 처리:**
+	- 센서가 하나도 없을 경우, getSensorCount()는 0을 반환
+	- 주소 중복, 버스 에러 등은 추후 예외 정책에 따라 처리 예정
+
+---
 ### TemperatureSensorManager 클래스 설계
 
 - **역할:**

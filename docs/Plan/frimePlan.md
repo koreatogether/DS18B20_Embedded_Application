@@ -39,7 +39,7 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 ### 2.1 DS18B20 센서 관리 (Domain Layer)
 - [v] ITemperatureSensor 인터페이스 정의
 - [v] TemperatureSensorManager 클래스 설계
-- [ ] 센서 자동 탐지 및 주소 관리 로직
+- [v] 센서 자동 탐지 및 주소 관리 로직
 - [ ] 센서별 온도 측정/수집/갱신 메서드
 - [ ] 센서별 사용자 데이터(ID) 저장/조회/중복 체크
 - [ ] 에러 처리(-127.0 등) 및 예외 상황 관리
