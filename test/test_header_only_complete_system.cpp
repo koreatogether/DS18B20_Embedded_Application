@@ -3,6 +3,7 @@
 #include "mocks/MockSerialCommandHandler.h"
 #include "mocks/MockMemoryTracker.h"
 #include "mocks/MockMemoryLeakDetector.h"
+#include "mocks/MockStressTestManager.h"
 #include <memory>
 #include <string>
 #include <cstring> // strstr 함수 사용을 위해 추가
@@ -11,6 +12,7 @@
 MockMemoryMonitorService *memoryService;
 MockSerialCommandHandler *commandHandler;
 MockMemoryLeakDetector *leakDetector;
+MockStressTestManager *stressManager;
 std::shared_ptr<MockMemoryMonitorService> memoryServicePtr;
 
 void setUp(void)
@@ -20,6 +22,7 @@ void setUp(void)
     memoryServicePtr = std::shared_ptr<MockMemoryMonitorService>(memoryService);
     commandHandler = new MockSerialCommandHandler(memoryServicePtr);
     leakDetector = new MockMemoryLeakDetector();
+    stressManager = new MockStressTestManager();
 }
 
 void tearDown(void)
@@ -27,6 +30,7 @@ void tearDown(void)
     // 각 테스트 후에 객체들을 정리
     delete commandHandler;
     delete leakDetector;
+    delete stressManager;
     // memoryService는 shared_ptr에 의해 자동으로 삭제됨
 }
 
@@ -409,6 +413,102 @@ void test_leak_report_generation()
     TEST_ASSERT_TRUE(strstr(reportBuffer, "Total Snapshots") != NULL);
 }
 
+// ===== 스트레스 테스트 시나리오 =====
+
+void test_memory_stress_small_allocations()
+{
+    // Given: 작은 할당 시나리오 (기본 시나리오 0번)
+
+    // When: 메모리 스트레스 테스트 실행
+    StressTestResult result = stressManager->runMemoryStressTest(0);
+
+    // Then: 테스트가 성공적으로 수행되어야 함
+    TEST_ASSERT_EQUAL_STRING("Memory_Small_Allocations", result.testName.c_str());
+    TEST_ASSERT_TRUE(result.testPassed);
+    TEST_ASSERT_GREATER_THAN(0, result.operationsPerformed);
+    TEST_ASSERT_GREATER_THAN(0, result.memoryUsedBytes);
+    // 성능 등급은 GOOD 이상이면 통과
+    TEST_ASSERT_TRUE(result.performanceRating == "EXCELLENT" ||
+                     result.performanceRating == "GOOD");
+}
+
+void test_cpu_stress_math_intensive()
+{
+    // Given: 수학 집약적 시나리오 (기본 시나리오 0번)
+
+    // When: CPU 스트레스 테스트 실행
+    StressTestResult result = stressManager->runCpuStressTest(0);
+
+    // Then: 테스트가 성공적으로 수행되어야 함
+    TEST_ASSERT_EQUAL_STRING("CPU_Math_Intensive", result.testName.c_str());
+    TEST_ASSERT_TRUE(result.testPassed);
+    TEST_ASSERT_GREATER_THAN(15000, result.operationsPerformed); // 10000 + 5000 연산
+    TEST_ASSERT_GREATER_THAN(0, result.operationsPerSecond);
+}
+
+void test_io_stress_serial_flood()
+{
+    // Given: 시리얼 플러드 시나리오 (기본 시나리오 0번)
+
+    // When: I/O 스트레스 테스트 실행
+    StressTestResult result = stressManager->runIoStressTest(0);
+
+    // Then: 시리얼 I/O가 테스트되어야 함
+    TEST_ASSERT_EQUAL_STRING("IO_Serial_Flood", result.testName.c_str());
+    TEST_ASSERT_TRUE(result.testPassed);
+    TEST_ASSERT_GREATER_THAN(1400, result.operationsPerformed); // 1000 + 500 연산
+    TEST_ASSERT_EQUAL(0, result.errorCount);                    // 에러 시뮬레이션 없음
+}
+
+void test_comprehensive_stress_test()
+{
+    // Given: 초기 상태의 스트레스 매니저
+
+    // When: 종합 스트레스 테스트 실행
+    std::string report = stressManager->runComprehensiveStressTest();
+
+    // Then: 모든 시나리오가 실행되고 리포트가 생성되어야 함
+    TEST_ASSERT_TRUE(report.find("COMPREHENSIVE STRESS TEST REPORT") != std::string::npos);
+    TEST_ASSERT_TRUE(report.find("Total Tests:") != std::string::npos);
+    TEST_ASSERT_TRUE(report.find("Passed:") != std::string::npos);
+    TEST_ASSERT_TRUE(report.find("System Health Assessment:") != std::string::npos);
+
+    // 테스트 결과 개수 확인
+    int expectedTests = stressManager->getMemoryScenarioCount() +
+                        stressManager->getCpuScenarioCount() +
+                        stressManager->getIoScenarioCount();
+    TEST_ASSERT_EQUAL(expectedTests, stressManager->getTestResultCount());
+}
+
+void test_system_stability_low_load()
+{
+    // Given: 낮은 부하 수준 (레벨 1)
+
+    // When: 시스템 안정성 테스트 실행
+    StressTestResult result = stressManager->runSystemStabilityTest(1);
+
+    // Then: 낮은 부하에서는 안정적이어야 함
+    TEST_ASSERT_EQUAL_STRING("System_Stability_Load_1", result.testName.c_str());
+    TEST_ASSERT_TRUE(result.testPassed);
+    TEST_ASSERT_EQUAL(1000, result.operationsPerformed); // 1000 * 1 = 1000
+    TEST_ASSERT_EQUAL(0, result.errorCount);             // 낮은 부하에서는 에러 없음
+}
+
+void test_stress_manager_scenario_counts()
+{
+    // Given: 기본 시나리오가 로드된 상태
+
+    // When: 시나리오 개수 확인
+    int memoryCount = stressManager->getMemoryScenarioCount();
+    int cpuCount = stressManager->getCpuScenarioCount();
+    int ioCount = stressManager->getIoScenarioCount();
+
+    // Then: 기본 시나리오들이 로드되어야 함
+    TEST_ASSERT_EQUAL(3, memoryCount); // Small, Large, Fragmentation
+    TEST_ASSERT_EQUAL(3, cpuCount);    // Math, String, Mixed
+    TEST_ASSERT_EQUAL(3, ioCount);     // Serial, Sensor, Error
+}
+
 int main(int argc, char **argv)
 {
     UNITY_BEGIN();
@@ -443,6 +543,11 @@ int main(int argc, char **argv)
     RUN_TEST(test_threshold_based_leak_detection);
     RUN_TEST(test_memory_recovery_scenario);
     RUN_TEST(test_leak_report_generation);
+
+    // Stress Test Manager Tests
+    RUN_TEST(test_memory_stress_small_allocations);
+    RUN_TEST(test_comprehensive_stress_test);
+    RUN_TEST(test_stress_manager_scenario_counts);
 
     return UNITY_END();
 }
