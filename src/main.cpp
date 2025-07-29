@@ -1,13 +1,29 @@
 #include <Arduino.h>
 #include "infrastructure/ICommandProcessor.h"
 #include "infrastructure/SerialCommandHandler.h"
+#include "application/IMemoryAnalyzer.h"
+#include "application/MemoryMonitorService.h"
+#include "hal/IHal.h"
+#include "hal/ArduinoHal.h"
 #include <memory>
 
-// ICommandProcessor 인터페이스를 가리키는 스마트 포인터 선언
+// 링커 오류 해결을 위해 __brkval 심볼을 main.cpp에 정의
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+  char *sbrk(int incr);
+  char *__brkval = (char *)sbrk(0);
+#ifdef __cplusplus
+}
+#endif
+
+// 각 인터페이스를 가리키는 스마트 포인터 선언
+std::shared_ptr<IHal> hal;
+std::shared_ptr<IMemoryAnalyzer> memoryAnalyzer;
 std::unique_ptr<ICommandProcessor> commandProcessor;
 
 // put function declarations here:
-int myFunction(int, int);
 
 void setup()
 {
@@ -17,20 +33,31 @@ void setup()
   while (!Serial)
     ;
 
-  // SerialCommandHandler 객체를 생성하고 스마트 포인터에 할당
-  commandProcessor = std::make_unique<SerialCommandHandler>();
+  // --- 의존성 주입 (Dependency Injection) ---
+  // 1. HAL (Hardware Abstraction Layer) 객체 생성
+  hal = std::make_shared<ArduinoHal>();
+
+  // 2. Application Layer의 MemoryMonitorService 객체 생성 시 HAL 주입
+  memoryAnalyzer = std::make_shared<MemoryMonitorService>(hal);
+
+  // 3. Infrastructure Layer의 SerialCommandHandler 객체 생성 시,
+  //    Application Layer의 객체(memoryAnalyzer)를 주입
+  commandProcessor = std::make_unique<SerialCommandHandler>(memoryAnalyzer);
 
   Serial.println("\n========================================");
   Serial.println(" DS18B20 Embedded System Initialized");
   Serial.println("========================================");
   Serial.println("Type 'help' or 'menu' for a list of commands.");
 
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // 초기화 메시지 후 첫 메모리 상태 출력
+  memoryAnalyzer->getFreeMemory();
 }
 
 void loop()
 {
+  // 주기적인 메모리 상태 확인
+  memoryAnalyzer->periodicCheck();
+
   // 시리얼 버퍼에 수신된 데이터가 있는지 확인
   if (Serial.available() > 0)
   {
@@ -56,7 +83,4 @@ void loop()
 }
 
 // put function definitions here:
-int myFunction(int x, int y)
-{
-  return x + y;
-}
+// 더 이상 사용하지 않는 예제 함수 제거

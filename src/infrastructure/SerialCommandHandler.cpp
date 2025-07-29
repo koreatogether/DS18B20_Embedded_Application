@@ -1,7 +1,9 @@
 #include "SerialCommandHandler.h"
 #include <sstream>
 
-SerialCommandHandler::SerialCommandHandler() {}
+SerialCommandHandler::SerialCommandHandler(std::shared_ptr<IMemoryAnalyzer> memoryAnalyzer)
+    : _memoryAnalyzer(memoryAnalyzer) {}
+
 SerialCommandHandler::~SerialCommandHandler() {}
 
 std::string SerialCommandHandler::processCommand(const std::string &command)
@@ -12,23 +14,24 @@ std::string SerialCommandHandler::processCommand(const std::string &command)
     }
     else if (command == "memtest")
     {
-        return handleMemTest();
+        return _memoryAnalyzer->getRuntimeAnalysis();
     }
     else if (command == "memstress")
     {
-        return handleMemStress();
+        // memstress는 getRuntimeAnalysis와 동일한 기능을 호출하도록 임시 연결
+        return _memoryAnalyzer->getRuntimeAnalysis();
     }
     else if (command == "memstruct")
     {
-        return handleMemStruct();
+        return _memoryAnalyzer->getStructureAnalysis();
     }
     else if (command == "memfree")
     {
-        return handleMemFree();
+        return _memoryAnalyzer->getFreeMemory();
     }
     else if (command == "memtoggle")
     {
-        return handleMemToggle();
+        return _memoryAnalyzer->toggleMonitoring();
     }
     else
     {
@@ -52,30 +55,25 @@ std::string SerialCommandHandler::handleHelp()
 
 std::string SerialCommandHandler::handleMemTest()
 {
-    // TODO: 실제 메모리 테스트 로직 연동
-    return "[OK] memtest command received. (Not implemented)";
+    return _memoryAnalyzer->getRuntimeAnalysis();
 }
 
 std::string SerialCommandHandler::handleMemStress()
 {
-    // TODO: 실제 메모리 스트레스 테스트 로직 연동
-    return "[OK] memstress command received. (Not implemented)";
+    return _memoryAnalyzer->getRuntimeAnalysis();
 }
 
 std::string SerialCommandHandler::handleMemStruct()
 {
-    // TODO: 실제 메모리 구조 분석 로직 연동
-    return "[OK] memstruct command received. (Not implemented)";
+    return _memoryAnalyzer->getStructureAnalysis();
 }
 
 std::string SerialCommandHandler::handleMemFree()
 {
-    // TODO: 실제 가용 메모리 출력 로직 연동
-    return "[OK] memfree command received. (Not implemented)";
+    return _memoryAnalyzer->getFreeMemory();
 }
 
 std::string SerialCommandHandler::handleMemToggle()
 {
-    // TODO: 실제 메모리 모니터링 토글 로직 연동
-    return "[OK] memtoggle command received. (Not implemented)";
+    return _memoryAnalyzer->toggleMonitoring();
 }

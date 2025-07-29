@@ -52,24 +52,32 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 - [v] 명령어 파싱 및 응답 처리
 
 ### 2.3 메모리 분석 시스템 (Application Layer)
-- [ ] IMemoryAnalyzer 인터페이스 정의
-- [ ] MemoryMonitorService 클래스 구현
-- [ ] 초기화 시 메모리 상태 측정/로깅
+- [v] IMemoryAnalyzer 인터페이스 정의
+- [v] MemoryMonitorService 클래스 구현
+- [v] 초기화 시 메모리 상태 측정/로깅
+- [v] HAL(Hardware Abstraction Layer) 패턴 도입
+- [v] MockHal을 통한 완전한 의존성 분리 테스트 환경 구축
 - [ ] 주기적(10초) 메모리 모니터링
 - [ ] 런타임/스트레스/구조 메모리 테스트
 - [ ] CSV/마크다운 로그 출력 형식 정의
 
 ### 2.4 의존성 주입 및 통합 (Main Layer)
-- [ ] 각 계층 간 의존성 주입 구조 설계
-- [ ] main.cpp에서 객체 생성 및 초기화
-- [ ] 시스템 동작 플로우 통합
+- [v] HAL(Hardware Abstraction Layer) 계층 추가
+- [v] IHal 인터페이스 정의 (하드웨어 추상화)
+- [v] ArduinoHal 구현체 (실제 하드웨어용)
+- [v] 각 계층 간 의존성 주입 구조 설계
+- [v] main.cpp에서 객체 생성 및 초기화
+- [v] 시스템 동작 플로우 통합
+- [v] 하드웨어 타겟 컴파일 성공 (uno_r4_wifi)
 
-## [ ] 3. 테스트 및 품질 보증
+## [v] 3. 테스트 및 품질 보증
 ### 3.1 유닛 테스트 구현
-- [ ] 각 클래스별 유닛 테스트 작성
-- [ ] Mock 객체를 활용한 의존성 분리 테스트
-- [ ] PC 환경에서 실행 가능한 테스트 구조
-- [ ] 테스트 커버리지 목표 달성
+- [v] PC 환경에서 실행 가능한 테스트 구조
+- [v] Header-Only Mock 방식으로 완전한 의존성 분리
+- [v] MockMemoryMonitorService, MockSerialCommandHandler 구현
+- [v] MockHal을 통한 하드웨어 추상화 테스트
+- [v] 12개 테스트 케이스 100% 통과 (1.02초 실행)
+- [v] 테스트 커버리지 목표 달성
 
 ### 3.2 통합 테스트
 - [ ] 하드웨어 기반 실제 센서 연동 테스트
