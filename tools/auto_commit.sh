@@ -19,47 +19,14 @@ fi
 git add .
 
 
-# 4. 커밋 메시지 자동 생성 (instructions 규칙 기반)
+
+# 4. 커밋/푸시 단계는 수동으로 진행 (자동화는 스테이징까지)
 if git diff --cached --quiet; then
   echo "[INFO] 커밋할 변경사항이 없습니다."
   exit 0
 fi
 
-# 변경 파일 목록 추출
-CHANGED=$(git diff --cached --name-only)
-
-MSG=""
-if echo "$CHANGED" | grep -qE '^src/domain/'; then
-  MSG="impl(domain): update domain logic"
-fi
-if echo "$CHANGED" | grep -qE '^src/application/'; then
-  MSG="impl(application): update application logic"
-fi
-if echo "$CHANGED" | grep -qE '^src/infrastructure/'; then
-  MSG="impl(infrastructure): update infrastructure logic"
-fi
-if echo "$CHANGED" | grep -qE '^test/'; then
-  MSG="test(unit): update or add unit tests"
-fi
-if echo "$CHANGED" | grep -qE '^docs/Plan/02_core_feature_design.md'; then
-  MSG="docs(plan): update core feature design documentation"
-fi
-if echo "$CHANGED" | grep -qE '^docs/Plan/frimePlan.md'; then
-  MSG="plan: update frimePlan checklist"
-fi
-if echo "$CHANGED" | grep -qE '^tools/'; then
-  MSG="ci: update automation scripts"
-fi
-
-# 여러 영역이 동시에 변경된 경우 메시지 합치기
-if [ $(echo "$CHANGED" | grep -cE '^src/domain/') -gt 0 ] && [ $(echo "$CHANGED" | grep -cE '^test/') -gt 0 ]; then
-  MSG="impl(domain): update domain logic & test(unit): update or add unit tests"
-fi
-if [ -z "$MSG" ]; then
-  MSG="chore: update project files"
-fi
-
-git commit -m "$MSG"
+echo "[INFO] 변경 파일이 스테이징되었습니다. 커밋 메시지 작성 및 git commit/push는 수동으로 진행하세요."
 
 # 5. git push
 if ! git push; then
