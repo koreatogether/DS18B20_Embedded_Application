@@ -46,7 +46,7 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 
 ### 2.2 통신 및 명령어 처리 (Infrastructure Layer)
 - [v] ICommandProcessor 인터페이스 정의
-- [ ] SerialCommandHandler 클래스 구현
+- [v] SerialCommandHandler 클래스 구현
 - [ ] memtest/memstress/memstruct/memfree/memtoggle 명령어
 - [ ] help/menu 등 사용자 편의 명령어
 - [ ] 명령어 파싱 및 응답 처리
