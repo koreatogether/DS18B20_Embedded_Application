@@ -59,3 +59,16 @@ jobs:
         run: |
           pip install cppcheck
           cppcheck --enable=all --inconclusive --std=c++17 --quiet --suppress=missingIncludeSystem src/
+
+      - name: Run code quality metrics analysis
+        run: |
+          python tools/quality_metrics/code_metrics.py
+
+      - name: Upload quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-metrics
+          path: |
+            logs/quality/*.json
+            logs/quality/*.md

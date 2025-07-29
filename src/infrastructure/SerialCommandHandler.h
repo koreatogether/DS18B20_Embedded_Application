@@ -2,7 +2,8 @@
 #define SERIALCOMMANDHANDLER_H
 
 #include "ICommandProcessor.h"
-#include "application/IMemoryAnalyzer.h" // IMemoryAnalyzer 인터페이스 포함
+#include "application/IMemoryAnalyzer.h"      // IMemoryAnalyzer 인터페이스 포함
+#include "application/MemoryMonitorService.h" // MemoryMonitorService 포함
 #include <string>
 #include <memory> // std::shared_ptr 사용
 

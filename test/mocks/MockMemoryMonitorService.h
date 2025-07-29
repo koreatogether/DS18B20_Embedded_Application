@@ -96,6 +96,29 @@ public:
         return formatAsMarkdown("MONITORING_STATUS", status);
     }
 
+    std::string toggleTracking() override
+    {
+        // Mock implementation for memory tracking toggle
+        static bool trackingEnabled = false;
+        trackingEnabled = !trackingEnabled;
+        std::string status = trackingEnabled ? "ENABLED" : "DISABLED";
+        return formatAsMarkdown("TRACKING_STATUS", status);
+    }
+
+    std::string getMemoryReport() override
+    {
+        // Mock implementation for memory report
+        std::ostringstream oss;
+        oss << "# Mock Memory Tracking Report\n\n";
+        oss << "- **Total Snapshots**: 5\n";
+        oss << "- **Min Free Memory**: " << (_freeMemoryBytes - 200) << " bytes\n";
+        oss << "- **Max Free Memory**: " << (_freeMemoryBytes + 200) << " bytes\n";
+        oss << "- **Avg Free Memory**: " << _freeMemoryBytes << " bytes\n";
+        oss << "- **Memory Trend**: Stable\n";
+        oss << "- **Duration**: 5000 ms\n";
+        return oss.str();
+    }
+
 private:
     // 실제 구현과 동일한 헬퍼 메서드들 (향상된 로그 형식)
     std::string formatAsCsv(const std::string &type, int value)

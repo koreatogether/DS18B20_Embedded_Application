@@ -1,6 +1,7 @@
 #include <unity.h>
 #include "mocks/MockMemoryMonitorService.h"
 #include "mocks/MockSerialCommandHandler.h"
+#include "mocks/MockMemoryTracker.h"
 #include <memory>
 #include <string>
 
@@ -198,6 +199,81 @@ void test_memory_toggle_command()
     TEST_ASSERT_EQUAL_STRING("| 8000 | MONITORING_STATUS | DISABLED |", result.c_str());
 }
 
+// ===== Memory Tracker Tests =====
+
+void test_memory_tracker_interface()
+{
+    // Given: MockMemoryTracker 생성
+    MockMemoryTracker tracker;
+
+    // Initially no snapshots
+    TEST_ASSERT_EQUAL(0, tracker.getSnapshotCount());
+
+    // When: Record snapshot
+    tracker.recordSnapshot(2000, 500, "TEST", "Test snapshot");
+
+    // Then: Should have one snapshot
+    TEST_ASSERT_EQUAL(1, tracker.getSnapshotCount());
+
+    // When: Clear history
+    tracker.clearHistory();
+
+    // Then: Should have no snapshots
+    TEST_ASSERT_EQUAL(0, tracker.getSnapshotCount());
+}
+
+void test_memory_tracker_report_generation()
+{
+    // Given: MockMemoryTracker with data
+    MockMemoryTracker tracker;
+
+    // When: Add multiple snapshots
+    tracker.addMockSnapshot(1000, 2000, 500, "TEST1"); // Free: 2000, Used: 500
+    tracker.addMockSnapshot(2000, 1800, 700, "TEST2"); // Free: 1800, Used: 700
+    tracker.addMockSnapshot(3000, 1900, 600, "TEST3"); // Free: 1900, Used: 600
+
+    MemoryReport report = tracker.generateReport();
+
+    // Then: Report should contain correct data
+    TEST_ASSERT_EQUAL(3, report.totalSnapshots);
+    TEST_ASSERT_EQUAL(1800, report.minFreeBytes); // Minimum free memory
+    TEST_ASSERT_EQUAL(2000, report.maxFreeBytes); // Maximum free memory
+    TEST_ASSERT_EQUAL(1900, report.avgFreeBytes); // Average free memory (2000+1800+1900)/3 = 1900
+}
+
+void test_memory_tracker_csv_export()
+{
+    // Given: MockMemoryTracker with data
+    MockMemoryTracker tracker;
+    tracker.addMockSnapshot(1000, 2000, 500, "TEST1");
+    tracker.addMockSnapshot(2000, 1800, 700, "TEST2");
+
+    // When: Export to CSV
+    std::string csv = tracker.exportToCsv();
+
+    // Then: Should contain header and data
+    TEST_ASSERT_TRUE(csv.find("Timestamp,FreeBytes,UsedBytes,EventType,Description") != std::string::npos);
+    TEST_ASSERT_TRUE(csv.find("1000,2000,500,TEST1") != std::string::npos);
+    TEST_ASSERT_TRUE(csv.find("2000,1800,700,TEST2") != std::string::npos);
+}
+
+void test_memory_tracker_markdown_export()
+{
+    // Given: MockMemoryTracker with data
+    MockMemoryTracker tracker;
+    tracker.addMockSnapshot(1000, 2000, 500, "TEST1");
+    tracker.addMockSnapshot(2000, 1800, 700, "TEST2");
+
+    // When: Export to Markdown
+    std::string markdown = tracker.exportReportToMarkdown();
+
+    // Then: Should contain markdown format
+    TEST_ASSERT_TRUE(markdown.find("# Memory Tracking Report") != std::string::npos);
+    TEST_ASSERT_TRUE(markdown.find("| Timestamp | Free Bytes") != std::string::npos);
+    TEST_ASSERT_TRUE(markdown.find("| 1000 | 2000") != std::string::npos);
+    TEST_ASSERT_TRUE(markdown.find("| 2000 | 1800") != std::string::npos);
+}
+
 int main(int argc, char **argv)
 {
     UNITY_BEGIN();
@@ -217,6 +293,12 @@ int main(int argc, char **argv)
     RUN_TEST(test_memory_command_calls_memory_analyzer);
     RUN_TEST(test_unknown_command_returns_error_message);
     RUN_TEST(test_memory_toggle_command);
+
+    // Memory Tracker Tests
+    RUN_TEST(test_memory_tracker_interface);
+    RUN_TEST(test_memory_tracker_report_generation);
+    RUN_TEST(test_memory_tracker_csv_export);
+    RUN_TEST(test_memory_tracker_markdown_export);
 
     return UNITY_END();
 }

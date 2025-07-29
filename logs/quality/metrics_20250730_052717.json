@@ -1,0 +1,186 @@
+{
+  "timestamp": "2025-07-30T05:27:17.949993",
+  "code_metrics": {
+    "total_lines": 1222,
+    "source_files": 5,
+    "header_files": 11,
+    "test_files": 2,
+    "functions": 72,
+    "classes": 10,
+    "complexity_score": 44.0,
+    "files_breakdown": {
+      "src\\main.cpp": {
+        "lines": 86,
+        "functions": 3,
+        "classes": 0,
+        "complexity": 3
+      },
+      "src\\application\\MemoryMonitorService.cpp": {
+        "lines": 128,
+        "functions": 12,
+        "classes": 0,
+        "complexity": 7
+      },
+      "src\\application\\MemoryTrackerService.cpp": {
+        "lines": 231,
+        "functions": 9,
+        "classes": 0,
+        "complexity": 14
+      },
+      "src\\domain\\TemperatureSensorManager.cpp": {
+        "lines": 153,
+        "functions": 8,
+        "classes": 0,
+        "complexity": 12
+      },
+      "src\\infrastructure\\SerialCommandHandler.cpp": {
+        "lines": 89,
+        "functions": 9,
+        "classes": 0,
+        "complexity": 8
+      },
+      "src\\application\\IArduinoApi.h": {
+        "lines": 0,
+        "functions": 0,
+        "classes": 0,
+        "complexity": 0
+      },
+      "src\\application\\IMemoryAnalyzer.h": {
+        "lines": 60,
+        "functions": 0,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\application\\IMemoryTracker.h": {
+        "lines": 100,
+        "functions": 0,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\application\\MemoryMonitorService.h": {
+        "lines": 70,
+        "functions": 2,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\application\\MemoryTrackerService.h": {
+        "lines": 59,
+        "functions": 9,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\domain\\ITemperatureSensor.h": {
+        "lines": 21,
+        "functions": 0,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\domain\\TemperatureSensorManager.h": {
+        "lines": 60,
+        "functions": 16,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\hal\\ArduinoHal.h": {
+        "lines": 54,
+        "functions": 3,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\hal\\IHal.h": {
+        "lines": 43,
+        "functions": 0,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\infrastructure\\ICommandProcessor.h": {
+        "lines": 24,
+        "functions": 0,
+        "classes": 1,
+        "complexity": 0
+      },
+      "src\\infrastructure\\SerialCommandHandler.h": {
+        "lines": 44,
+        "functions": 1,
+        "classes": 1,
+        "complexity": 0
+      },
+      "test\\test_header_only_complete_system.cpp": {
+        "lines": 304,
+        "functions": 43,
+        "classes": 0,
+        "complexity": 0
+      },
+      "test\\etc\\test_memory_tracker.cpp": {
+        "lines": 214,
+        "functions": 30,
+        "classes": 0,
+        "complexity": 0
+      }
+    },
+    "avg_complexity": 0.6111111111111112
+  },
+  "architecture_metrics": {
+    "layer_separation": {
+      "domain_files": 2,
+      "application_files": 5,
+      "infrastructure_files": 2,
+      "total_layered_files": 9,
+      "score": 90
+    },
+    "dependency_inversion": {
+      "interfaces_count": 5,
+      "implementations_count": 4,
+      "interfaces": [
+        "IMemoryAnalyzer.h",
+        "IMemoryTracker.h",
+        "ITemperatureSensor.h",
+        "IHal.h",
+        "ICommandProcessor.h"
+      ],
+      "score": 80.0
+    },
+    "interface_usage": {
+      "mock_files_count": 6,
+      "mock_files": [
+        "MockHal.h",
+        "MockMemoryMonitorService.h",
+        "MockMemoryTracker.h",
+        "MockSerialCommandHandler.h",
+        "MockTemperatureSensor.h",
+        "MockTemperatureSensorManager.h"
+      ],
+      "score": 90
+    },
+    "solid_principles": {
+      "total_source_files": 5,
+      "large_files_count": 1,
+      "large_files": [
+        {
+          "file": "MemoryTrackerService.cpp",
+          "lines": 231
+        }
+      ],
+      "score": 80.0
+    },
+    "architecture_score": 85.0
+  },
+  "test_metrics": {
+    "test_files": 2,
+    "test_cases": 0,
+    "passed_tests": 0,
+    "failed_tests": 0,
+    "test_success_rate": 0.0,
+    "execution_time": 0.0,
+    "coverage_estimate": 40.0
+  },
+  "build_metrics": {
+    "compilation_success": false,
+    "ram_usage_percent": 0.0,
+    "flash_usage_percent": 0.0,
+    "binary_size_bytes": 0,
+    "warnings_count": 0,
+    "errors_count": 0
+  },
+  "quality_score": 60.5
+}

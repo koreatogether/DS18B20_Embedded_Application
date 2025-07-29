@@ -3,10 +3,14 @@
 #include <iomanip>
 #include <vector>
 
-MemoryMonitorService::MemoryMonitorService(std::shared_ptr<IHal> hal, unsigned long interval)
-    : _hal(hal), _lastCheckTime(0), _interval(interval), _isMonitoringEnabled(true)
+MemoryMonitorService::MemoryMonitorService(std::shared_ptr<IHal> hal, std::shared_ptr<IMemoryTracker> tracker, unsigned long interval)
+    : _hal(hal), _tracker(tracker), _lastCheckTime(0), _interval(interval), _isMonitoringEnabled(true), _isTrackingEnabled(tracker != nullptr)
 {
-    // 생성자에서 직접 Serial 출력을 하지 않고, 초기화 로직만 담당
+    // 초기 메모리 상태 기록
+    if (_tracker)
+    {
+        _tracker->recordCurrentMemory("INIT", "System initialization");
+    }
 }
 
 void MemoryMonitorService::periodicCheck()
@@ -16,9 +20,14 @@ void MemoryMonitorService::periodicCheck()
         _lastCheckTime = _hal->millis();
 
         // 주기적 메모리 모니터링 로그 생성
-        std::string timestamp = std::to_string(_hal->millis());
         std::string freeMemLog = getFreeMemory();
         std::string structLog = getStructureAnalysis();
+
+        // 추적 기능이 활성화되어 있으면 스냅샷 기록
+        if (_isTrackingEnabled && _tracker)
+        {
+            _tracker->recordCurrentMemory("PERIODIC", "Periodic monitoring");
+        }
 
         // CSV 형식으로 타임스탬프와 함께 로그 출력
         std::string periodicLog = formatAsCsv("PERIODIC_CHECK", _hal->millis()) +
@@ -26,7 +35,6 @@ void MemoryMonitorService::periodicCheck()
         _hal->print(periodicLog);
     }
 }
-
 std::string MemoryMonitorService::getRuntimeAnalysis()
 {
     // 런타임 메모리 분석: 동적 메모리 할당/해제 테스트
@@ -89,4 +97,32 @@ std::string MemoryMonitorService::formatAsMarkdown(const std::string &type, cons
     // Markdown 테이블 형식: | 시간 | 타입 | 값 |
     oss << "| " << _hal->millis() << " | " << type << " | " << value << " |";
     return oss.str();
+}
+
+std::string MemoryMonitorService::toggleTracking()
+{
+    if (!_tracker)
+    {
+        return formatAsMarkdown("TRACKING_STATUS", "No tracker available");
+    }
+
+    _isTrackingEnabled = !_isTrackingEnabled;
+    std::string status = _isTrackingEnabled ? "ENABLED" : "DISABLED";
+
+    if (_isTrackingEnabled)
+    {
+        _tracker->recordCurrentMemory("TRACKING_ENABLED", "Memory tracking activated");
+    }
+
+    return formatAsMarkdown("TRACKING_STATUS", status);
+}
+
+std::string MemoryMonitorService::getMemoryReport()
+{
+    if (!_tracker)
+    {
+        return formatAsMarkdown("MEMORY_REPORT", "No tracker available");
+    }
+
+    return _tracker->exportReportToMarkdown();
 }

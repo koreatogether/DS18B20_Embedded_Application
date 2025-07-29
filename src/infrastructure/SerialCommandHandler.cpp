@@ -33,6 +33,14 @@ std::string SerialCommandHandler::processCommand(const std::string &command)
     {
         return _memoryAnalyzer->toggleMonitoring();
     }
+    else if (command == "memtrack")
+    {
+        return _memoryAnalyzer->toggleTracking();
+    }
+    else if (command == "memreport")
+    {
+        return _memoryAnalyzer->getMemoryReport();
+    }
     else
     {
         return "Unknown command: " + command;
@@ -48,6 +56,8 @@ std::string SerialCommandHandler::handleHelp()
     oss << "memstruct : Show memory structure analysis.\n";
     oss << "memfree   : Show current free memory.\n";
     oss << "memtoggle : Toggle periodic memory monitoring.\n";
+    oss << "memtrack  : Toggle memory change tracking.\n";
+    oss << "memreport : Generate memory tracking report.\n";
     oss << "help/menu : Show this menu.\n";
     oss << "--------------------";
     return oss.str();

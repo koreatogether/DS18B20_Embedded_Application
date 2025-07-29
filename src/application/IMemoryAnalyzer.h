@@ -43,6 +43,18 @@ public:
      * @return std::string 변경된 상태 정보
      */
     virtual std::string toggleMonitoring() = 0;
+
+    /**
+     * @brief 메모리 변화 추적 기능의 활성화/비활성화 상태를 토글합니다.
+     * @return std::string 변경된 상태 정보
+     */
+    virtual std::string toggleTracking() = 0;
+
+    /**
+     * @brief 메모리 추적 리포트를 생성하여 반환합니다.
+     * @return std::string 메모리 추적 리포트
+     */
+    virtual std::string getMemoryReport() = 0;
 };
 
 #endif // I_MEMORY_ANALYZER_H
