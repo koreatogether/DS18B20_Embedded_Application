@@ -11,7 +11,7 @@
 
 ---
 
-## [ ] 1. 프로젝트 구조 및 환경 구축
+## [v] 1. 프로젝트 구조 및 환경 구축
 ### 1.1 기본 설정
 - [v] PlatformIO 프로젝트 초기화 및 보드 설정 (uno_r4_wifi)
 - [v] platformio.ini 설정 (라이브러리[v], 테스트 환경[v], 빌드 옵션[v])
@@ -32,32 +32,32 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 
 ### 1.4 CI/CD 및 버전 관리
 - [v] GitHub 저장소 설정
-- [ ] GitHub Actions 워크플로우 (.github/workflows/main.yml)
-- [ ] 자동 빌드/테스트/정적분석 파이프라인
+- [v] GitHub Actions 워크플로우 (.github/workflows/main.yml)
+- [v] 자동 빌드/테스트/정적분석 파이프라인
 
 ## [ ] 2. 핵심 기능 설계 및 구현
 ### 2.1 DS18B20 센서 관리 (Domain Layer)
-- [ ] ITemperatureSensor 인터페이스 정의
-- [ ] TemperatureSensorManager 클래스 설계
+- [v] ITemperatureSensor 인터페이스 정의
+- [v] TemperatureSensorManager 클래스 설계
 - [ ] 센서 자동 탐지 및 주소 관리 로직
 - [ ] 센서별 온도 측정/수집/갱신 메서드
 - [ ] 센서별 사용자 데이터(ID) 저장/조회/중복 체크
 - [ ] 에러 처리(-127.0 등) 및 예외 상황 관리
 
-### 2.2 메모리 분석 시스템 (Application Layer)
+### 2.2 통신 및 명령어 처리 (Infrastructure Layer)
+- [ ] ICommandProcessor 인터페이스 정의
+- [ ] SerialCommandHandler 클래스 구현
+- [ ] memtest/memstress/memstruct/memfree/memtoggle 명령어
+- [ ] help/menu 등 사용자 편의 명령어
+- [ ] 명령어 파싱 및 응답 처리
+
+### 2.3 메모리 분석 시스템 (Application Layer)
 - [ ] IMemoryAnalyzer 인터페이스 정의
 - [ ] MemoryMonitorService 클래스 구현
 - [ ] 초기화 시 메모리 상태 측정/로깅
 - [ ] 주기적(10초) 메모리 모니터링
 - [ ] 런타임/스트레스/구조 메모리 테스트
 - [ ] CSV/마크다운 로그 출력 형식 정의
-
-### 2.3 통신 및 명령어 처리 (Infrastructure Layer)
-- [ ] ICommandProcessor 인터페이스 정의
-- [ ] SerialCommandHandler 클래스 구현
-- [ ] memtest/memstress/memstruct/memfree/memtoggle 명령어
-- [ ] help/menu 등 사용자 편의 명령어
-- [ ] 명령어 파싱 및 응답 처리
 
 ### 2.4 의존성 주입 및 통합 (Main Layer)
 - [ ] 각 계층 간 의존성 주입 구조 설계
@@ -77,8 +77,8 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 - [ ] 시리얼 명령어 End-to-End 테스트
 
 ### 3.3 자동화 및 정적 분석
-- [ ] CI/CD 파이프라인에서 자동 테스트 실행
-- [ ] cppcheck, clang-tidy 정적 분석 통합
+- [v] CI/CD 파이프라인에서 자동 테스트 실행
+- [v] cppcheck, clang-tidy 정적 분석 통합
 - [ ] 메모리 사용량 변화 추적 및 리포트
 - [ ] 코드 품질 메트릭 모니터링
 

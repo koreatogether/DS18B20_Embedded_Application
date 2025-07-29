@@ -183,8 +183,131 @@ tools/ (자동화 도구, 스크립트)
 ## 4. 의존성 설정
 이 단계는 본 프로젝트의 규모로는 hand written mock 방식 (mock 직접 구현 ) 으로 충분함.
 
-## 5. CI/CD 파이프라인 설정
 
-목적 : CI/CD 파이프라인을 설정하여 코드 변경 시 자동으로 빌드 및 테스트를 실행합니다. 
-GitHub Actions를 사용하여 다음과 같은 워크플로우를 설정할 수 있습니다. (앞서 github 설정을 끝낸 상황 필요)
+## 5. CI/CD 파이프라인 개요
+
+이 프로젝트는 GitHub Actions 기반의 CI/CD 파이프라인을 통해 코드 변경 시 자동으로 빌드, 테스트, 정적분석을 실행합니다.
+CI/CD의 목적은 다음과 같습니다:
+- 코드 품질 자동 검증(빌드, 테스트, 정적분석)
+- 빌드 산출물(펌웨어) 자동 배포
+- 협업 및 유지보수 효율 향상
+
+구체적인 워크플로우 설정 및 활용법은 다음 장에서 다룹니다.
+
+```yaml
+name: PlatformIO CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build (uno_r4_wifi)
+        run: pio run -e uno_r4_wifi
+
+      - name: Run native unit tests
+        run: pio test -e native
+
+      - name: Show firmware size
+        run: pio run -e uno_r4_wifi --target size
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: |
+            .pio/build/uno_r4_wifi/*.elf
+            .pio/build/uno_r4_wifi/*.bin
+            .pio/build/uno_r4_wifi/*.hex
+
+      - name: Run cppcheck (static analysis)
+        run: |
+          pip install cppcheck
+          cppcheck --enable=all --inconclusive --std=c++17 --quiet --suppress=missingIncludeSystem src/
+```
+
+## 6. GitHub Actions 적용 이후 자동화 과정
+
+### 6.1 워크플로우(main.yml) 파일 생성 및 커밋
+- `.github/workflows/main.yml` 파일을 생성하고, 아래와 같이 작성합니다.
+- 커밋 후 push하면 GitHub Actions가 자동으로 동작합니다.
+
+```yaml
+name: PlatformIO CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build (uno_r4_wifi)
+        run: pio run -e uno_r4_wifi
+
+      - name: Run native unit tests
+        run: pio test -e native
+
+      - name: Show firmware size
+        run: pio run -e uno_r4_wifi --target size
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: |
+            .pio/build/uno_r4_wifi/*.elf
+            .pio/build/uno_r4_wifi/*.bin
+            .pio/build/uno_r4_wifi/*.hex
+
+      - name: Run cppcheck (static analysis)
+        run: |
+          pip install cppcheck
+          cppcheck --enable=all --inconclusive --std=c++17 --quiet --suppress=missingIncludeSystem src/
+```
+
+### 6.2 자동화 결과 확인 및 활용
+- GitHub 저장소의 Actions 탭에서 빌드/테스트/정적분석 결과를 확인할 수 있습니다.
+- 빌드 산출물(펌웨어)은 Artifacts로 자동 업로드되어, 언제든 다운로드 및 배포가 가능합니다.
+- cppcheck를 통한 정적 분석 결과로 코드 품질을 자동으로 점검할 수 있습니다.
+
+### 6.3 요약
+- 코드 push/PR 시 자동으로 빌드, 테스트, 정적분석이 실행되어 품질을 보장합니다.
+- CI/CD 파이프라인이 완성되어, 협업 및 유지보수 효율이 크게 향상됩니다.
 

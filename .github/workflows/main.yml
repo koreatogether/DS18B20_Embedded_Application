@@ -41,3 +41,8 @@ jobs:
             .pio/build/uno_r4_wifi/*.elf
             .pio/build/uno_r4_wifi/*.bin
             .pio/build/uno_r4_wifi/*.hex
+
+      - name: Run cppcheck (static analysis)
+        run: |
+          pip install cppcheck
+          cppcheck --enable=all --inconclusive --std=c++17 --quiet --suppress=missingIncludeSystem src/
