@@ -1,8 +1,3 @@
-
-
-
-
-
 # DS18B20 Embedded Application: Master Plan
 
 이 문서는 DS18B20 온도 센서 + 메모리 분석 통합 시스템의 개발, 테스트, 운영, 품질보증, 문서화 전 과정을 아우르는 마스터 체크리스트입니다.
@@ -50,11 +45,11 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 - [v] 에러 처리(-127.0 등) 및 예외 상황 관리
 
 ### 2.2 통신 및 명령어 처리 (Infrastructure Layer)
-- [ ] ICommandProcessor 인터페이스 정의
-- [ ] SerialCommandHandler 클래스 구현
-- [ ] memtest/memstress/memstruct/memfree/memtoggle 명령어
-- [ ] help/menu 등 사용자 편의 명령어
-- [ ] 명령어 파싱 및 응답 처리
+- [v] ICommandProcessor 인터페이스 정의
+- [v] SerialCommandHandler 클래스 구현
+- [v] memtest/memstress/memstruct/memfree/memtoggle 명령어
+- [v] help/menu 등 사용자 편의 명령어
+- [v] 명령어 파싱 및 응답 처리
 
 ### 2.3 메모리 분석 시스템 (Application Layer)
 - [ ] IMemoryAnalyzer 인터페이스 정의

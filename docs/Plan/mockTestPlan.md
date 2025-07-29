@@ -114,4 +114,42 @@ lib_deps =
 
 이 접근법은 `frimePlan.md`에 명시된 **클린 아키텍처**와 **의존성 역전 원칙(DIP)**을 완벽하게 지원하며, 안정적이고 독립적인 테스트 환경을 성공적으로 구축하는 결과를 가져왔습니다.
 
+---
+
+## 7. Infrastructure Layer 유닛 테스트: `SerialCommandHandler`
+
+### 7.1. 목적
+
+`src/infrastructure` 계층의 일부 클래스는 `Arduino.h`와 같은 프레임워크에 직접적인 의존성을 갖지 않거나, 표준 라이브러리(예: `string`, `sstream`)만 사용하여 로직을 구현할 수 있습니다. 이러한 클래스들은 Mock 객체 없이도 `native` 환경에서 직접 유닛 테스트가 가능합니다. `SerialCommandHandler`가 이 성공적인 사례에 해당합니다.
+
+### 7.2. 접근 방식
+
+- **직접 구현체 테스트**: Mock 객체를 사용하는 대신, `SerialCommandHandler.cpp`의 실제 구현 코드를 `native` 테스트 빌드에 직접 포함시킵니다.
+- **테스트 파일 작성**: `test/unit/test_serial_command.cpp` 파일을 생성하여, `SerialCommandHandler`의 `processCommand` 메서드가 각 명령어에 대해 정확한 문자열을 반환하는지 검증하는 테스트 케이스를 작성했습니다.
+
+### 7.3. `platformio.ini` 설정
+
+이 테스트를 위해 `[env:native]` 환경을 다음과 같이 구성했습니다.
+
+```ini
+[env:native]
+platform = native
+test_framework = unity
+build_flags =
+    -std=c++17
+    -Wall
+    -I src ; 'src' 폴더를 include 경로로 추가
+build_src_filter = 
+    +<src/infrastructure/*.cpp> ; SerialCommandHandler.cpp 포함
+    +<test/unit/test_serial_command.cpp> ; 테스트 스위트 포함
+    -<src/main.cpp> ; 불필요한 파일 제외
+    -<src/domain/*>
+lib_deps =
+    throwtheswitch/Unity@^2.6.0
+```
+
+### 7.4. 결과: 성공
+
+`pio test -e native` 명령 실행을 통해, `SerialCommandHandler`의 모든 기능(명령어 파싱 및 응답 생성)이 예상대로 동작함을 유닛 테스트로 성공적으로 검증했습니다. 이로써 `Infrastructure` 계층의 핵심 로직이 하드웨어 통합 전에 안정적으로 구현되었음을 확인했습니다.
+
 

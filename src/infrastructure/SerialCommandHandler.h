@@ -23,10 +23,13 @@ public:
     std::string processCommand(const std::string &command) override;
 
 private:
-    // 명령어별 처리 메서드 예시
-    std::string handleMemTest();
+    // 명령어별 처리 메서드
     std::string handleHelp();
-    // ... 기타 명령어 핸들러 추가
+    std::string handleMemTest();
+    std::string handleMemStress();
+    std::string handleMemStruct();
+    std::string handleMemFree();
+    std::string handleMemToggle();
 };
 
 #endif // SERIALCOMMANDHANDLER_H
