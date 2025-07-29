@@ -13,22 +13,22 @@
 
 ## [ ] 1. 프로젝트 구조 및 환경 구축
 ### 1.1 기본 설정
-- [x] PlatformIO 프로젝트 초기화 및 보드 설정 (uno_r4_wifi)
-- [ ] platformio.ini 설정 (라이브러리[x], 테스트 환경, 빌드 옵션)
-- [ ] .gitignore, .vscode 설정
+- [v] PlatformIO 프로젝트 초기화 및 보드 설정 (uno_r4_wifi)
+- [v] platformio.ini 설정 (라이브러리[v], 테스트 환경[v], 빌드 옵션[v])
+- [v] .gitignore, .vscode 설정
 
 ### 1.2 계층적 디렉토리 구조 정립
-- [ ] src/domain/ (하드웨어 독립적 비즈니스 로직)
-- [ ] src/application/ (유스케이스 구현)
-- [ ] src/infrastructure/ (하드웨어 인터페이스, 통신)
-- [ ] test/unit/ (PC 기반 유닛 테스트)
-- [ ] test/integration/ (하드웨어 기반 통합 테스트)
-- [ ] docs/ (설계, 분석, 사용자 가이드)
+
+- [v] docs/ (설계, 분석, 사용자 가이드)
+- [v] src/domain/ (하드웨어 독립적 비즈니스 로직)
+- [v] src/application/ (유스케이스 구현)
+- [v] src/infrastructure/ (하드웨어 인터페이스, 통신)
+- [v] test(PC 기반 유닛 테스트)
+- [v] test/integration/ (하드웨어 기반 통합 테스트)
+- [v] tools/ (자동화 도구, 스크립트)
 
 ### 1.3 의존성 관리
-- [ ] OneWire, DallasTemperature 라이브러리 설정
-- [ ] 테스트 프레임워크 설정 (Unity/Google Test)
-- [ ] Mock 라이브러리 설정
+hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 
 ### 1.4 CI/CD 및 버전 관리
 - [ ] GitHub 저장소 설정
