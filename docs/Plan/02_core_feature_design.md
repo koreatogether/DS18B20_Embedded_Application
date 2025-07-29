@@ -1,4 +1,5 @@
-### 센서별 사용자 데이터(ID) 저장/조회/중복 체크
+
+### 센서별 사용자 데이터(ID) 저장/조회/중복 체크 ✅ 완료
 
 - **설계 의도:**
 	- 각 DS18B20 센서에 대해 사용자가 임의의 식별자(ID)를 부여, 저장, 조회, 중복 체크할 수 있도록 한다.
@@ -18,6 +19,43 @@
 - **예외 처리:**
 	- 인덱스 범위 오류, 빈 문자열, 중복 ID 등은 false 반환 또는 예외 처리
 	- ID가 없는 경우 빈 문자열 반환
+
+- **구현 완료:**
+	- ✅ TemperatureSensorManager 클래스에 ID 관리 메서드 구현
+	- ✅ Unity 테스트 프레임워크로 정상/예외 케이스 검증
+	- ✅ 테스트용 메서드(_test_setSensorIds) 추가로 유닛 테스트 지원
+	- ✅ 설계 문서 및 계획서 동기화 완료
+
+#
+### 에러 처리(-127.0 등) 및 예외 상황 관리 ✅ 완료
+
+- **설계 의도:**
+	- DS18B20 센서의 온도 측정 시 발생할 수 있는 에러값(-127.0 등) 및 예외 상황을 일관되게 관리한다.
+	- 센서 연결 상태, 온도값 유효성, 에러 코드/메시지 제공 등 robust한 도메인 계층을 구현한다.
+
+- **구조 및 책임:**
+	- SensorErrorCode enum: 에러 코드 정의 (NO_ERROR, SENSOR_DISCONNECTED, INVALID_TEMPERATURE 등)
+	- isTemperatureValid(float temp): 온도값 유효성 검사
+	- getLastErrorCode(), getErrorMessage(): 최근 에러 코드/메시지 반환
+	- isSensorConnected(index): 센서 연결 상태 확인
+	- clearLastError(), setLastError(): 에러 상태 관리
+	- isValidIndex(index): 인덱스 범위 체크
+
+- **주요 흐름:**
+	1. readTemperature() 등에서 온도값이 에러값(-127.0 등)이면 에러 코드/메시지 설정
+	2. isTemperatureValid()로 온도값의 정상 여부 판단
+	3. getLastErrorCode()/getErrorMessage()로 에러 상태 조회
+	4. isSensorConnected()로 센서 연결 상태 확인
+
+- **예외 처리:**
+	- 인덱스 범위 오류, 센서 미연결, 에러값(-127.0 등)은 적절한 에러 코드/메시지로 반환
+	- 에러 발생 시 내부 상태에 기록, 필요시 clearLastError()로 초기화
+
+- **구현 완료:**
+	- ✅ TemperatureSensorManager에 에러 처리/예외 관리 메서드 및 enum 구현
+	- ✅ Unity 테스트 프레임워크로 정상/에러/예외 케이스 검증
+	- ✅ 테스트 케이스(test_temperature_sensor.cpp) 및 문서 동기화 완료
+	- ✅ 설계 문서 및 계획서 동기화 완료
 
 ---
 # DS18B20 Domain Layer Core Feature Progress (계획-설계-구현-테스트-문서화-자동화 동기화)

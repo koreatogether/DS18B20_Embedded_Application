@@ -41,8 +41,8 @@ hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 - [v] TemperatureSensorManager 클래스 설계
 - [v] 센서 자동 탐지 및 주소 관리 로직
 - [v] 센서별 온도 측정/수집/갱신 메서드
-- [ ] 센서별 사용자 데이터(ID) 저장/조회/중복 체크
-- [ ] 에러 처리(-127.0 등) 및 예외 상황 관리
+- [v] 센서별 사용자 데이터(ID) 저장/조회/중복 체크
+- [v] 에러 처리(-127.0 등) 및 예외 상황 관리
 
 ### 2.2 통신 및 명령어 처리 (Infrastructure Layer)
 - [ ] ICommandProcessor 인터페이스 정의

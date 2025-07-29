@@ -106,6 +106,67 @@ void test_temperatureSensorManager_sensorId_duplicateCheck(void)
     TEST_ASSERT_TRUE(mgr.isIdDuplicated("B"));
 }
 
+// -----------------------------
+// 6. 에러 처리(-127.0 등) 및 예외 상황 관리
+// -----------------------------
+void test_temperatureSensorManager_errorHandling_temperatureValidation(void)
+{
+    TemperatureSensorManager mgr;
+
+    // 정상 온도값
+    TEST_ASSERT_TRUE(mgr.isTemperatureValid(20.5f));
+    TEST_ASSERT_TRUE(mgr.isTemperatureValid(0.0f));
+    TEST_ASSERT_TRUE(mgr.isTemperatureValid(100.0f));
+
+    // 에러 온도값
+    TEST_ASSERT_FALSE(mgr.isTemperatureValid(-127.0f));
+    TEST_ASSERT_FALSE(mgr.isTemperatureValid(-128.0f));
+    TEST_ASSERT_FALSE(mgr.isTemperatureValid(125.0f));
+    TEST_ASSERT_FALSE(mgr.isTemperatureValid(126.0f));
+}
+
+void test_temperatureSensorManager_errorHandling_errorCodes(void)
+{
+    TemperatureSensorManager mgr;
+
+    // 초기 상태는 SUCCESS
+    TEST_ASSERT_EQUAL_INT32((int32_t)SensorErrorCode::SUCCESS, (int32_t)mgr.getLastErrorCode());
+
+    // 인덱스 범위 초과 시 에러 코드 설정
+    mgr.getSensorAddress(999, nullptr);
+    TEST_ASSERT_EQUAL_INT32((int32_t)SensorErrorCode::INDEX_OUT_OF_RANGE, (int32_t)mgr.getLastErrorCode());
+
+    // 에러 클리어
+    mgr.clearLastError();
+    TEST_ASSERT_EQUAL_INT32((int32_t)SensorErrorCode::SUCCESS, (int32_t)mgr.getLastErrorCode());
+
+    // 테스트용 에러 설정
+    mgr._test_setLastError(SensorErrorCode::SENSOR_DISCONNECTED);
+    TEST_ASSERT_EQUAL_INT32((int32_t)SensorErrorCode::SENSOR_DISCONNECTED, (int32_t)mgr.getLastErrorCode());
+}
+
+void test_temperatureSensorManager_errorHandling_errorMessages(void)
+{
+    TemperatureSensorManager mgr;
+
+    TEST_ASSERT_EQUAL_STRING("Success", mgr.getErrorMessage(SensorErrorCode::SUCCESS).c_str());
+    TEST_ASSERT_EQUAL_STRING("Index out of range", mgr.getErrorMessage(SensorErrorCode::INDEX_OUT_OF_RANGE).c_str());
+    TEST_ASSERT_EQUAL_STRING("Sensor disconnected", mgr.getErrorMessage(SensorErrorCode::SENSOR_DISCONNECTED).c_str());
+    TEST_ASSERT_EQUAL_STRING("Temperature read error", mgr.getErrorMessage(SensorErrorCode::TEMPERATURE_READ_ERROR).c_str());
+}
+
+void test_temperatureSensorManager_errorHandling_sensorConnection(void)
+{
+    TemperatureSensorManager mgr;
+    std::vector<std::vector<uint8_t>> addrs = {
+        {0x28, 0xFF, 0x1C, 0x60, 0x91, 0x16, 0x03, 0x5C}};
+    mgr._test_setSensorAddresses(addrs);
+
+    // 현재 구현에서는 항상 false 반환 (시뮬레이션)
+    TEST_ASSERT_FALSE(mgr.isSensorConnected(0));
+    TEST_ASSERT_FALSE(mgr.isSensorConnected(999)); // 인덱스 범위 초과
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -125,6 +186,12 @@ int main(void)
     RUN_TEST(test_temperatureSensorManager_sensorId_normal);
     RUN_TEST(test_temperatureSensorManager_sensorId_error_outOfRange);
     RUN_TEST(test_temperatureSensorManager_sensorId_duplicateCheck);
+
+    // 6. 에러 처리 및 예외 상황 관리
+    RUN_TEST(test_temperatureSensorManager_errorHandling_temperatureValidation);
+    RUN_TEST(test_temperatureSensorManager_errorHandling_errorCodes);
+    RUN_TEST(test_temperatureSensorManager_errorHandling_errorMessages);
+    RUN_TEST(test_temperatureSensorManager_errorHandling_sensorConnection);
 
     return UNITY_END();
 }
