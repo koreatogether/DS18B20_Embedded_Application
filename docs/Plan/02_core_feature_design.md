@@ -53,11 +53,9 @@
 
 - **구현 완료:**
 	- ✅ TemperatureSensorManager에 에러 처리/예외 관리 메서드 및 enum 구현
-	- ✅ Unity 테스트 프레임워크로 정상/에러/예외 케이스 검증
 	- ✅ 테스트 케이스(test_temperature_sensor.cpp) 및 문서 동기화 완료
 	- ✅ 설계 문서 및 계획서 동기화 완료
 
----
 # DS18B20 Domain Layer Core Feature Progress (계획-설계-구현-테스트-문서화-자동화 동기화)
 
 이 문서의 각 단계는 아래와 같은 일관된 워크플로우를 따릅니다:
@@ -68,11 +66,9 @@
 	3. 관련 설계 문서 및 체크리스트(frimePlan.md) 동기화
 	4. auto_commit.sh 등 자동화 스크립트로 스테이징(커밋/푸시는 수동)
 	5. 각 단계별 완료 시, 문서 상단에 ✅ 및 요약 추가, 계획과 문서의 일치 보장
-
 ---
 
 ### ITemperatureSensor 인터페이스 정의  ✅ 완료
-> [v] 인터페이스 설계, 파일 생성, 빌드/테스트, 자동화 스크립트 도입 및 문서화까지 완료됨.
 
 ### TemperatureSensorManager 클래스 설계  ✅ 완료
 > [v] TemperatureSensorManager 클래스 설계, 책임 정의, 주요 메서드 시그니처, 설계 고려사항 등 완료.
@@ -93,7 +89,6 @@
 - **구조 및 책임:**
 	- readTemperature(index): 지정한 센서의 현재 온도를 반환
 	- updateAllTemperatures(): 모든 센서의 온도를 한 번에 측정하여 내부 캐시에 저장(옵션)
-	- getCachedTemperature(index): 최근 측정된 온도값을 반환(옵션)
 	- ITemperatureSensor 인터페이스의 read() 또는 readAll()을 활용하여 하드웨어 독립적 구현
 
 - **주요 흐름:**
@@ -102,12 +97,10 @@
 	3. getCachedTemperature(index)는 내부 벡터에서 최근 측정값 반환(옵션)
 
 - **예외 처리:**
-	- 센서 미연결, 에러값(-127.0 등)은 예외/에러 코드로 반환 또는 로깅
 	- 인덱스 범위 오류 등은 false/NaN/특정 값 반환
 
 ---
 ### 센서 자동 탐지 및 주소 관리 로직
-
 - **설계 의도:**
 	- 시스템이 부팅되거나 사용자가 요청할 때, 1-Wire 버스에 연결된 모든 DS18B20 센서를 자동으로 탐지하여 고유 8바이트 주소를 수집/저장합니다.
 	- 센서 주소 목록은 TemperatureSensorManager가 관리하며, 센서별 온도 측정/ID 매핑의 기준이 됩니다.
@@ -116,12 +109,10 @@
 	- discoverSensors() 메서드는 ITemperatureSensor 인터페이스(실제 하드웨어 드라이버)를 통해 센서 주소를 반복적으로 검색합니다.
 	- 중복 없이 주소 벡터(sensorAddresses_)에 저장하고, 센서 개수에 맞춰 sensorIds_ 벡터도 동기화합니다.
 	- 센서가 추가/제거될 경우에도 일관된 주소 관리가 가능하도록 설계합니다.
-
 - **주요 흐름:**
 	1. discoverSensors() 호출 시 기존 주소/ID 목록 초기화
 	2. ITemperatureSensor::search() 등 하드웨어 API로 1-Wire 버스의 모든 센서 주소 탐색
 	3. 각 주소를 sensorAddresses_에 저장, sensorIds_는 빈 문자열로 초기화
-	4. getSensorCount(), getSensorAddress(), set/getSensorId() 등에서 이 목록을 활용
 
 - **예외 처리:**
 	- 센서가 하나도 없을 경우, getSensorCount()는 0을 반환
@@ -130,7 +121,6 @@
 ---
 ### TemperatureSensorManager 클래스 설계
 
-- **역할:**
 	- 여러 DS18B20 센서를 자동 탐지하고, 각 센서의 주소를 관리하며, 온도 측정/수집/갱신 기능을 제공하는 도메인 계층의 핵심 매니저 클래스입니다.
 	- 각 센서별로 사용자 정의 ID를 저장/조회/중복 체크하며, 센서 에러(-127.0 등) 및 예외 상황을 일관되게 처리합니다.
 
@@ -139,27 +129,22 @@
 	- 센서별 온도 측정 및 데이터 갱신
 	- 센서별 사용자 데이터(ID) 저장/조회/중복 체크
 	- 에러 및 예외 상황 관리
-
 - **주요 메서드 시그니처(예시):**
 	```cpp
 	class TemperatureSensorManager {
 	public:
 			TemperatureSensorManager();
 			~TemperatureSensorManager();
-
 			void discoverSensors(); // 센서 자동 탐지
 			size_t getSensorCount() const;
 			bool getSensorAddress(size_t index, uint8_t* address) const;
 			float readTemperature(size_t index);
-			bool setSensorId(size_t index, const std::string& id);
 			std::string getSensorId(size_t index) const;
 			bool isIdDuplicated(const std::string& id) const;
 			// ... 기타 예외/에러 처리 메서드
-	};
 	```
 
 - **설계 시 고려사항:**
-	- ITemperatureSensor 인터페이스를 활용하여 하드웨어 독립적 설계
 	- 센서 주소와 사용자 ID의 매핑 구조(예: std::map 등) 활용
 	- 예외 상황(센서 미연결, 에러값 등) 처리 정책 명확화
 

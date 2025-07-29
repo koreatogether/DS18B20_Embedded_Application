@@ -2,12 +2,15 @@
 #include "mocks/MockMemoryMonitorService.h"
 #include "mocks/MockSerialCommandHandler.h"
 #include "mocks/MockMemoryTracker.h"
+#include "mocks/MockMemoryLeakDetector.h"
 #include <memory>
 #include <string>
+#include <cstring> // strstr 함수 사용을 위해 추가
 
 // Test Objects
 MockMemoryMonitorService *memoryService;
 MockSerialCommandHandler *commandHandler;
+MockMemoryLeakDetector *leakDetector;
 std::shared_ptr<MockMemoryMonitorService> memoryServicePtr;
 
 void setUp(void)
@@ -16,12 +19,14 @@ void setUp(void)
     memoryService = new MockMemoryMonitorService(1000); // 1초 간격
     memoryServicePtr = std::shared_ptr<MockMemoryMonitorService>(memoryService);
     commandHandler = new MockSerialCommandHandler(memoryServicePtr);
+    leakDetector = new MockMemoryLeakDetector();
 }
 
 void tearDown(void)
 {
     // 각 테스트 후에 객체들을 정리
     delete commandHandler;
+    delete leakDetector;
     // memoryService는 shared_ptr에 의해 자동으로 삭제됨
 }
 
@@ -274,6 +279,136 @@ void test_memory_tracker_markdown_export()
     TEST_ASSERT_TRUE(markdown.find("| 2000 | 1800") != std::string::npos);
 }
 
+// ===== Memory Leak Detection Tests =====
+
+void test_memory_leak_detector_initialization()
+{
+    // Given: MockMemoryLeakDetector가 초기화됨
+
+    // When: 초기화 직후 상태 확인
+
+    // Then: 탐지기가 정상적으로 생성되고 초기 상태가 올바르게 설정되어야 함
+    TEST_ASSERT_NOT_NULL(leakDetector);
+    TEST_ASSERT_EQUAL(0, leakDetector->getSnapshotCount());
+}
+
+void test_basic_memory_leak_detection()
+{
+    // Given: 초기 메모리 상태 설정
+    leakDetector->setMockFreeMemory(2000);
+    leakDetector->startLeakDetection("BasicLeakTest");
+
+    // When: 메모리가 점진적으로 감소하는 시나리오
+    for (int i = 0; i < 8; i++)
+    {
+        leakDetector->setMockFreeMemory(2000 - (i * 15)); // 15바이트씩 감소
+        leakDetector->recordTestIteration(i + 1, 2000 - (i * 15));
+    }
+
+    // Then: 메모리 누수가 탐지되어야 함
+    MemoryLeakAnalysis analysis = leakDetector->analyzeLeakPattern();
+
+    TEST_ASSERT_TRUE(analysis.leakDetected);
+    TEST_ASSERT_GREATER_THAN(3, analysis.suspiciousDecreaseCount);
+    TEST_ASSERT_GREATER_THAN(10, analysis.maxMemoryDecrease);
+    TEST_ASSERT_TRUE(analysis.averageMemoryTrend < 0);
+}
+
+void test_normal_memory_usage_no_leak()
+{
+    // Given: 초기 메모리 상태 설정
+    leakDetector->setMockFreeMemory(2000);
+    leakDetector->startLeakDetection("NormalUsageTest");
+
+    // When: 메모리가 안정적인 시나리오
+    int memoryValues[] = {2000, 1995, 2000, 1998, 2000, 1997, 2001, 1999};
+    for (int i = 0; i < 8; i++)
+    {
+        leakDetector->setMockFreeMemory(memoryValues[i]);
+        leakDetector->recordTestIteration(i + 1, memoryValues[i]);
+    }
+
+    // Then: 메모리 누수가 탐지되지 않아야 함
+    MemoryLeakAnalysis analysis = leakDetector->analyzeLeakPattern();
+
+    TEST_ASSERT_FALSE(analysis.leakDetected);
+    TEST_ASSERT_TRUE(analysis.maxMemoryDecrease <= 10);
+}
+
+void test_memory_stress_simulation()
+{
+    // Given & When: 스트레스 테스트 시뮬레이션 실행 (더 강한 감소량)
+    leakDetector->simulateMemoryStress(20, 10); // 20회 반복, 회당 10바이트 감소
+
+    // Then: 적절한 스냅샷이 기록되어야 함
+    TEST_ASSERT_GREATER_THAN(15, leakDetector->getSnapshotCount());
+
+    MemoryLeakAnalysis analysis = leakDetector->analyzeLeakPattern();
+
+    // 디버깅: 분석 결과 확인
+    printf("Debug - Total snapshots: %d\n", analysis.totalSnapshots);
+    printf("Debug - Suspicious decreases: %d\n", analysis.suspiciousDecreaseCount);
+    printf("Debug - Max memory decrease: %d\n", analysis.maxMemoryDecrease);
+    printf("Debug - Average trend: %.2f\n", analysis.averageMemoryTrend);
+    printf("Debug - Leak detected: %s\n", analysis.leakDetected ? "TRUE" : "FALSE");
+
+    // 개별 조건들 확인 (Mock의 완화된 조건과 일치)
+    TEST_ASSERT_GREATER_THAN(3, analysis.suspiciousDecreaseCount); // 3개 이상의 감소
+    TEST_ASSERT_GREATER_THAN(5, analysis.maxMemoryDecrease);       // 5바이트 이상 감소 (완화됨)
+    TEST_ASSERT_TRUE(analysis.averageMemoryTrend < -0.5f);         // 트렌드 조건 완화
+
+    // 최종 누수 탐지 확인
+    TEST_ASSERT_TRUE(analysis.leakDetected);
+}
+void test_threshold_based_leak_detection()
+{
+    // Given: 초기 상태 설정
+    leakDetector->setMockFreeMemory(2000);
+    leakDetector->startLeakDetection("ThresholdTest");
+
+    // When: 작은 메모리 감소 (임계값 미만)
+    for (int i = 0; i < 5; i++)
+    {
+        leakDetector->setMockFreeMemory(2000 - (i * 2)); // 2바이트씩 소량 감소
+        leakDetector->recordTestIteration(i + 1, 2000 - (i * 2));
+    }
+
+    // Then: 임계값 미만이므로 누수 탐지되지 않아야 함
+    bool leakDetected = leakDetector->detectMemoryLeak(10, 3);
+    TEST_ASSERT_FALSE(leakDetected);
+}
+
+void test_memory_recovery_scenario()
+{
+    // Given: 메모리 누수 상황 생성
+    leakDetector->simulateMemoryStress(8, 8); // 8회 반복, 회당 8바이트 감소
+
+    // When: 메모리 복구 시뮬레이션
+    leakDetector->simulateMemoryRecovery(60); // 60바이트 복구
+
+    // Then: 복구 스냅샷이 기록되어야 함
+    TEST_ASSERT_GREATER_THAN(8, leakDetector->getSnapshotCount());
+
+    // 마지막 스냅샷이 복구를 반영해야 함
+    MemorySnapshotFixed lastSnapshot = leakDetector->getSnapshot(leakDetector->getSnapshotCount() - 1);
+    TEST_ASSERT_EQUAL_STRING("MEMORY_RECOVERY", lastSnapshot.eventType);
+}
+
+void test_leak_report_generation()
+{
+    // Given: 테스트 데이터 준비
+    leakDetector->simulateMemoryStress(5, 8);
+
+    // When: 리포트 생성
+    char reportBuffer[1024];
+    leakDetector->generateLeakReport(reportBuffer, sizeof(reportBuffer));
+
+    // Then: 리포트에 필수 정보가 포함되어야 함
+    TEST_ASSERT_TRUE(strstr(reportBuffer, "Memory Leak Detection Report") != NULL);
+    TEST_ASSERT_TRUE(strstr(reportBuffer, "Memory_Stress_Test") != NULL);
+    TEST_ASSERT_TRUE(strstr(reportBuffer, "Total Snapshots") != NULL);
+}
+
 int main(int argc, char **argv)
 {
     UNITY_BEGIN();
@@ -299,6 +434,15 @@ int main(int argc, char **argv)
     RUN_TEST(test_memory_tracker_report_generation);
     RUN_TEST(test_memory_tracker_csv_export);
     RUN_TEST(test_memory_tracker_markdown_export);
+
+    // Memory Leak Detection Tests
+    RUN_TEST(test_memory_leak_detector_initialization);
+    RUN_TEST(test_basic_memory_leak_detection);
+    RUN_TEST(test_normal_memory_usage_no_leak);
+    RUN_TEST(test_memory_stress_simulation);
+    RUN_TEST(test_threshold_based_leak_detection);
+    RUN_TEST(test_memory_recovery_scenario);
+    RUN_TEST(test_leak_report_generation);
 
     return UNITY_END();
 }
