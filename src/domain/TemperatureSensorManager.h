@@ -22,8 +22,12 @@ public:
     // 기타 예외/에러 처리 메서드 선언 예정
 
     // [TEST ONLY] 테스트를 위한 센서 주소/ID 강제 주입 메서드
-    void _test_setSensorAddresses(const std::vector<std::vector<uint8_t>>& addrs) { sensorAddresses_ = addrs; sensorIds_.resize(addrs.size()); }
-    void _test_setSensorIds(const std::vector<std::string>& ids) { sensorIds_ = ids; }
+    void _test_setSensorAddresses(const std::vector<std::vector<uint8_t>> &addrs)
+    {
+        sensorAddresses_ = addrs;
+        sensorIds_.resize(addrs.size());
+    }
+    void _test_setSensorIds(const std::vector<std::string> &ids) { sensorIds_ = ids; }
 
 private:
     std::vector<std::vector<uint8_t>> sensorAddresses_; // 8바이트 주소

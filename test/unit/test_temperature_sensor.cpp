@@ -16,13 +16,13 @@ TEST(Domain_TemperatureSensorManager, SensorAddress_NormalAndError)
 {
     TemperatureSensorManager mgr;
     std::vector<std::vector<uint8_t>> addrs = {
-        {0x28,0xFF,0x1C,0x60,0x91,0x16,0x03,0x5C}
-    };
+        {0x28, 0xFF, 0x1C, 0x60, 0x91, 0x16, 0x03, 0x5C}};
     mgr._test_setSensorAddresses(addrs);
     uint8_t addr[8] = {0};
     // 정상 케이스: 주소 반환
     EXPECT_TRUE(mgr.getSensorAddress(0, addr));
-    for (size_t i = 0; i < 8; ++i) EXPECT_EQ(addr[i], addrs[0][i]);
+    for (size_t i = 0; i < 8; ++i)
+        EXPECT_EQ(addr[i], addrs[0][i]);
     // 예외 케이스: 인덱스 초과
     EXPECT_FALSE(mgr.getSensorAddress(1, addr));
 }
@@ -31,7 +31,7 @@ TEST(Domain_TemperatureSensorManager, SensorCount_Normal)
 {
     TemperatureSensorManager mgr;
     EXPECT_EQ(mgr.getSensorCount(), 0u);
-    mgr._test_setSensorAddresses({{1,2,3,4,5,6,7,8},{9,10,11,12,13,14,15,16}});
+    mgr._test_setSensorAddresses({{1, 2, 3, 4, 5, 6, 7, 8}, {9, 10, 11, 12, 13, 14, 15, 16}});
     EXPECT_EQ(mgr.getSensorCount(), 2u);
 }
 
@@ -39,7 +39,7 @@ TEST(Domain_TemperatureSensorManager, SensorCount_Normal)
 TEST(Domain_TemperatureSensorManager, ReadTemperature_ErrorCase)
 {
     TemperatureSensorManager mgr;
-    mgr._test_setSensorAddresses({{1,2,3,4,5,6,7,8}});
+    mgr._test_setSensorAddresses({{1, 2, 3, 4, 5, 6, 7, 8}});
     // 현재는 항상 -127.0 반환 (예외 케이스)
     EXPECT_FLOAT_EQ(mgr.readTemperature(0), -127.0f);
     EXPECT_FLOAT_EQ(mgr.readTemperature(1), -127.0f);
@@ -51,9 +51,8 @@ TEST(Domain_TemperatureSensorManager, SensorId_NormalAndError)
     TemperatureSensorManager mgr;
     // 2개 센서 주소/ID 강제 주입
     std::vector<std::vector<uint8_t>> addrs = {
-        {0x28,0xFF,0x1C,0x60,0x91,0x16,0x03,0x5C},
-        {0x28,0xFF,0x2D,0xA0,0x91,0x16,0x04,0x6D}
-    };
+        {0x28, 0xFF, 0x1C, 0x60, 0x91, 0x16, 0x03, 0x5C},
+        {0x28, 0xFF, 0x2D, 0xA0, 0x91, 0x16, 0x04, 0x6D}};
     mgr._test_setSensorAddresses(addrs);
     mgr._test_setSensorIds({"", ""});
 
