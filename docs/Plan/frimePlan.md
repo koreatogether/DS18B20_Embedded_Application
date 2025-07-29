@@ -31,7 +31,7 @@
 hand written Mock 방식 ( Mock 객체를 직접 구현하여 의존성 분리)
 
 ### 1.4 CI/CD 및 버전 관리
-- [ ] GitHub 저장소 설정
+- [v] GitHub 저장소 설정
 - [ ] GitHub Actions 워크플로우 (.github/workflows/main.yml)
 - [ ] 자동 빌드/테스트/정적분석 파이프라인
 
