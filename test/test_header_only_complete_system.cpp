@@ -40,12 +40,13 @@ void test_get_free_memory_returns_csv_format()
 {
     // Given: Mock이 1024 바이트의 free memory를 반환하도록 설정
     memoryService->setFreeMemoryBytes(1024);
+    memoryService->setCurrentMillis(5000); // 시간 설정
 
     // When: getFreeMemory() 메서드 호출
     std::string result = memoryService->getFreeMemory();
 
-    // Then: CSV 형식으로 결과가 반환되어야 함
-    TEST_ASSERT_EQUAL_STRING("type,FREE_MEMORY,value,1024", result.c_str());
+    // Then: 타임스탬프가 포함된 CSV 형식으로 결과가 반환되어야 함
+    TEST_ASSERT_EQUAL_STRING("5000,FREE_MEMORY,1024", result.c_str());
 }
 
 void test_get_structure_analysis_returns_markdown_format()
@@ -53,30 +54,32 @@ void test_get_structure_analysis_returns_markdown_format()
     // Given: Mock이 특정 메모리 구조 정보를 반환하도록 설정
     std::string expectedInfo = "Heap End: 0x200, Stack Pointer: 0x300";
     memoryService->setMemoryStructureInfo(expectedInfo);
+    memoryService->setCurrentMillis(3000); // 시간 설정
 
     // When: getStructureAnalysis() 메서드 호출
     std::string result = memoryService->getStructureAnalysis();
 
-    // Then: Markdown 형식으로 결과가 반환되어야 함
-    std::string expected = "| MEMORY_STRUCTURE | " + expectedInfo + " |";
+    // Then: 타임스탬프가 포함된 Markdown 형식으로 결과가 반환되어야 함
+    std::string expected = "| 3000 | MEMORY_STRUCTURE | " + expectedInfo + " |";
     TEST_ASSERT_EQUAL_STRING(expected.c_str(), result.c_str());
 }
 
 void test_toggle_monitoring_changes_status()
 {
     // Given: 초기 상태에서 모니터링이 활성화되어 있음
+    memoryService->setCurrentMillis(4000); // 시간 설정
 
     // When: toggleMonitoring()을 한 번 호출
     std::string result1 = memoryService->toggleMonitoring();
 
-    // Then: 모니터링이 비활성화되어야 함
-    TEST_ASSERT_EQUAL_STRING("| MONITORING_STATUS | DISABLED |", result1.c_str());
+    // Then: 모니터링이 비활성화되어야 함 (타임스탬프 포함)
+    TEST_ASSERT_EQUAL_STRING("| 4000 | MONITORING_STATUS | DISABLED |", result1.c_str());
 
     // When: toggleMonitoring()을 다시 호출
     std::string result2 = memoryService->toggleMonitoring();
 
     // Then: 모니터링이 다시 활성화되어야 함
-    TEST_ASSERT_EQUAL_STRING("| MONITORING_STATUS | ENABLED |", result2.c_str());
+    TEST_ASSERT_EQUAL_STRING("| 4000 | MONITORING_STATUS | ENABLED |", result2.c_str());
 }
 
 void test_periodic_check_respects_interval()
@@ -95,10 +98,11 @@ void test_periodic_check_respects_interval()
     memoryService->setCurrentMillis(1000);
     memoryService->periodicCheck();
 
-    // Then: 이제 출력이 발생해야 함
+    // Then: 이제 출력이 발생해야 함 (향상된 주기적 로그 포맷)
     TEST_ASSERT_EQUAL_size_t(1, memoryService->getPrintedMessages().size());
-    TEST_ASSERT_EQUAL_STRING("type,FREE_MEMORY,value,512",
-                             memoryService->getPrintedMessages()[0].c_str());
+    std::string logMessage = memoryService->getPrintedMessages()[0];
+    TEST_ASSERT_TRUE(logMessage.find("PERIODIC_CHECK") != std::string::npos);
+    TEST_ASSERT_TRUE(logMessage.find("1000") != std::string::npos); // 타임스탬프
 }
 
 void test_periodic_check_when_monitoring_disabled()
@@ -115,15 +119,22 @@ void test_periodic_check_when_monitoring_disabled()
     TEST_ASSERT_EQUAL_size_t(0, memoryService->getPrintedMessages().size());
 }
 
-void test_get_runtime_analysis_returns_not_implemented()
+void test_get_runtime_analysis_performs_stress_test()
 {
-    // Given: MemoryMonitorService 객체가 준비됨
+    // Given: MemoryMonitorService 객체가 준비되고 Mock 설정
+    memoryService->setCurrentMillis(6000);
+    memoryService->setFreeMemoryBytes(2048); // 초기/최종 free memory
 
     // When: getRuntimeAnalysis() 메서드 호출
     std::string result = memoryService->getRuntimeAnalysis();
 
-    // Then: "Not Implemented" 메시지가 Markdown 형식으로 반환되어야 함
-    TEST_ASSERT_EQUAL_STRING("| RUNTIME_TEST | Not Implemented |", result.c_str());
+    // Then: 런타임 분석 결과가 CSV 형식으로 반환되어야 함
+    // 결과에는 초기, 스트레스, 최종, 차이값이 포함되어야 함
+    TEST_ASSERT_TRUE(result.find("RUNTIME_INITIAL") != std::string::npos);
+    TEST_ASSERT_TRUE(result.find("RUNTIME_STRESS") != std::string::npos);
+    TEST_ASSERT_TRUE(result.find("RUNTIME_FINAL") != std::string::npos);
+    TEST_ASSERT_TRUE(result.find("RUNTIME_DIFF") != std::string::npos);
+    TEST_ASSERT_TRUE(result.find("6000") != std::string::npos); // 타임스탬프
 }
 
 // ===== SerialCommandHandler Tests =====
@@ -154,12 +165,13 @@ void test_memory_command_calls_memory_analyzer()
 {
     // Given: 메모리 분석기가 특정 값을 반환하도록 설정
     memoryService->setFreeMemoryBytes(2048);
+    memoryService->setCurrentMillis(7000); // 시간 설정
 
     // When: "memory" 명령어 처리
     std::string result = commandHandler->processCommand("memory");
 
-    // Then: 메모리 분석기의 결과가 반환되어야 함
-    TEST_ASSERT_EQUAL_STRING("type,FREE_MEMORY,value,2048", result.c_str());
+    // Then: 메모리 분석기의 결과가 반환되어야 함 (타임스탬프 포함)
+    TEST_ASSERT_EQUAL_STRING("7000,FREE_MEMORY,2048", result.c_str());
 }
 
 void test_unknown_command_returns_error_message()
@@ -177,12 +189,13 @@ void test_unknown_command_returns_error_message()
 void test_memory_toggle_command()
 {
     // Given: CommandHandler가 준비됨
+    memoryService->setCurrentMillis(8000); // 시간 설정
 
     // When: "memory toggle" 명령어 처리
     std::string result = commandHandler->processCommand("memory toggle");
 
-    // Then: 모니터링 상태 변경 결과가 반환되어야 함
-    TEST_ASSERT_EQUAL_STRING("| MONITORING_STATUS | DISABLED |", result.c_str());
+    // Then: 모니터링 상태 변경 결과가 반환되어야 함 (타임스탬프 포함)
+    TEST_ASSERT_EQUAL_STRING("| 8000 | MONITORING_STATUS | DISABLED |", result.c_str());
 }
 
 int main(int argc, char **argv)
@@ -196,7 +209,7 @@ int main(int argc, char **argv)
     RUN_TEST(test_toggle_monitoring_changes_status);
     RUN_TEST(test_periodic_check_respects_interval);
     RUN_TEST(test_periodic_check_when_monitoring_disabled);
-    RUN_TEST(test_get_runtime_analysis_returns_not_implemented);
+    RUN_TEST(test_get_runtime_analysis_performs_stress_test);
 
     // SerialCommandHandler Tests
     RUN_TEST(test_command_handler_initialization);

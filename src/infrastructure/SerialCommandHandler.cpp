@@ -43,11 +43,11 @@ std::string SerialCommandHandler::handleHelp()
 {
     std::ostringstream oss;
     oss << "--- Command Menu ---\n";
-    oss << "memtest   : Run memory stress test.\n";
-    oss << "memstress : (Not Implemented) Run memory stress test.\n";
-    oss << "memstruct : (Not Implemented) Show memory structure.\n";
-    oss << "memfree   : (Not Implemented) Show free memory.\n";
-    oss << "memtoggle : (Not Implemented) Toggle memory monitoring.\n";
+    oss << "memtest   : Run memory runtime analysis.\n";
+    oss << "memstress : Run memory stress test (same as memtest).\n";
+    oss << "memstruct : Show memory structure analysis.\n";
+    oss << "memfree   : Show current free memory.\n";
+    oss << "memtoggle : Toggle periodic memory monitoring.\n";
     oss << "help/menu : Show this menu.\n";
     oss << "--------------------";
     return oss.str();

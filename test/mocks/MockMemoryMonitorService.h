@@ -48,14 +48,35 @@ public:
         if (_isMonitoringEnabled && (_currentMillis - _lastCheckTime >= _interval))
         {
             _lastCheckTime = _currentMillis;
-            std::string message = getFreeMemory();
-            _printedMessages.push_back(message);
+
+            // 주기적 메모리 모니터링 로그 생성 (향상된 버전)
+            std::string freeMemLog = getFreeMemory();
+            std::string structLog = getStructureAnalysis();
+
+            // CSV 형식으로 타임스탬프와 함께 로그 출력
+            std::string periodicLog = formatAsCsv("PERIODIC_CHECK", _currentMillis) +
+                                      "," + freeMemLog + "," + structLog;
+            _printedMessages.push_back(periodicLog);
         }
     }
 
     std::string getRuntimeAnalysis() override
     {
-        return formatAsMarkdown("RUNTIME_TEST", "Not Implemented");
+        // 런타임 메모리 분석: 동적 메모리 할당/해제 테스트 시뮬레이션
+        int initialFree = _freeMemoryBytes;
+
+        // 스트레스 테스트 시뮬레이션: 메모리 사용량 변화
+        int stressFree = _freeMemoryBytes - 400; // 100개 int * 4바이트 시뮬레이션
+        int finalFree = _freeMemoryBytes;        // 메모리 해제 후 원상복구
+
+        // 결과를 CSV 형식으로 반환
+        std::ostringstream result;
+        result << formatAsCsv("RUNTIME_INITIAL", initialFree) << ","
+               << formatAsCsv("RUNTIME_STRESS", stressFree) << ","
+               << formatAsCsv("RUNTIME_FINAL", finalFree) << ","
+               << formatAsCsv("RUNTIME_DIFF", finalFree - initialFree);
+
+        return result.str();
     }
 
     std::string getStructureAnalysis() override
@@ -76,18 +97,20 @@ public:
     }
 
 private:
-    // 실제 구현과 동일한 헬퍼 메서드들
+    // 실제 구현과 동일한 헬퍼 메서드들 (향상된 로그 형식)
     std::string formatAsCsv(const std::string &type, int value)
     {
         std::ostringstream oss;
-        oss << "type," << type << ",value," << value;
+        // CSV 헤더: timestamp,type,value
+        oss << _currentMillis << "," << type << "," << value;
         return oss.str();
     }
 
     std::string formatAsMarkdown(const std::string &type, const std::string &value)
     {
         std::ostringstream oss;
-        oss << "| " << type << " | " << value << " |";
+        // Markdown 테이블 형식: | 시간 | 타입 | 값 |
+        oss << "| " << _currentMillis << " | " << type << " | " << value << " |";
         return oss.str();
     }
 };
