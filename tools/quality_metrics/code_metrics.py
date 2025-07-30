@@ -164,16 +164,14 @@ class CodeMetricsCollector:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                    
                     # 인터페이스 패턴 찾기
                     if re.search(r'class\s+I[A-Z]\w+', content):
                         interfaces.append(str(file_path.name))
-                    
                     # 구현 클래스 패턴 찾기 (인터페이스를 상속받는)
                     if re.search(r'class\s+\w+\s*:\s*public\s+I[A-Z]\w+', content):
                         implementations.append(str(file_path.name))
-                        
-                except Exception:
+                except Exception as e:
+                    print(f"[WARN] Failed to read {file_path}: {e}")
                     continue
         
         dip_score = 0.0
