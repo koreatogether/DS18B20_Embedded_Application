@@ -1,5 +1,7 @@
 #include "SerialCommandHandler.h"
 #include <sstream>
+#include <map>
+#include <functional>
 
 SerialCommandHandler::SerialCommandHandler(std::shared_ptr<IMemoryAnalyzer> memoryAnalyzer)
     : _memoryAnalyzer(memoryAnalyzer) {}

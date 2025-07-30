@@ -1,47 +1,4 @@
-// --- Helper functions for CPU stress test ---
-inline void simulateCpuLoops(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-{
-    for (int i = 0; i < scenario.cpuIntensiveLoops; i++)
-    {
-        operations++;
-        currentTimeMs += 1;
-    }
-}
-inline void simulateMathCalculations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-{
-    for (int i = 0; i < scenario.mathCalculations; i++)
-    {
-        operations++;
-        currentTimeMs += 2;
-    }
-}
-inline void simulateStringOperations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-{
-    for (int i = 0; i < scenario.stringOperations; i++)
-    {
-        operations++;
-        currentTimeMs += 3;
-    }
-}
-inline void setPerformanceRating(StressTestResult &result)
-{
-    if (result.operationsPerSecond > 1000)
-    {
-        result.performanceRating = "EXCELLENT";
-    }
-    else if (result.operationsPerSecond > 500)
-    {
-        result.performanceRating = "GOOD";
-    }
-    else if (result.operationsPerSecond > 200)
-    {
-        result.performanceRating = "FAIR";
-    }
-    else
-    {
-        result.performanceRating = "POOR";
-    }
-}
+// ...existing code...
 inline bool isTestPassed(int durationMs, int expectedDurationMs)
 {
     int timeTolerance = expectedDurationMs * 20 / 100;
@@ -120,6 +77,50 @@ struct IoStressScenario
 class MockStressTestManager
 {
 private:
+    // --- Helper functions for CPU stress test ---
+    inline void simulateCpuLoops(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.cpuIntensiveLoops; i++)
+        {
+            operations++;
+            currentTimeMs += 1;
+        }
+    }
+    inline void simulateMathCalculations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.mathCalculations; i++)
+        {
+            operations++;
+            currentTimeMs += 2;
+        }
+    }
+    inline void simulateStringOperations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.stringOperations; i++)
+        {
+            operations++;
+            currentTimeMs += 3;
+        }
+    }
+    inline void setPerformanceRating(StressTestResult &result)
+    {
+        if (result.operationsPerSecond > 1000)
+        {
+            result.performanceRating = "EXCELLENT";
+        }
+        else if (result.operationsPerSecond > 500)
+        {
+            result.performanceRating = "GOOD";
+        }
+        else if (result.operationsPerSecond > 200)
+        {
+            result.performanceRating = "FAIR";
+        }
+        else
+        {
+            result.performanceRating = "POOR";
+        }
+    }
     std::vector<StressTestResult> testResults;
     int currentMemoryBytes;
     int initialMemoryBytes;
