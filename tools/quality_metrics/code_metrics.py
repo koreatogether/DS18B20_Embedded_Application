@@ -15,7 +15,7 @@ import re
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Tuple, Any
+from typing import Dict, Any
 
 class CodeMetricsCollector:
     def __init__(self, project_root: str):
