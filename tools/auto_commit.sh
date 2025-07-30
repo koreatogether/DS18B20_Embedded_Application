@@ -15,10 +15,14 @@ if ! C:\\Users\\h\\.platformio\\penv\\Scripts\\platformio.exe test -e native; th
   exit 2
 fi
 
-# 3. git add (모든 변경/신규 파일 포함)
+
+# 3. doxygen 문서 자동 생성
+E:/utils/doxygen/doxygen.exe Doxyfile
+
+# 4. git add (모든 변경/신규 파일 포함)
 git add .
 
-# 4. 커밋/푸시는 수동으로 진행
+# 5. 커밋/푸시는 수동으로 진행
 if git diff --cached --quiet; then
   echo "[INFO] 커밋할 변경사항이 없습니다."
   exit 0

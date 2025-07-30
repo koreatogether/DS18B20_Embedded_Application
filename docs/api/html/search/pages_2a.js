@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['구성도_0',['시스템 구성도',['../md_docs_2design_2architecture.html#autotoc_md209',1,'']]],
+  ['구성_1',['1.4 테스트 환경 구성',['../md_docs_2_plan_201__environment__setup__guide.html#autotoc_md5',1,'']]],
+  ['구조화_2',['구조화',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md202',1,'10.6.2. 테스트 구조화'],['../md_docs_2_plan_202__core__feature__design.html#autotoc_md66',1,'5. 로그 시스템 구조화']]],
+  ['구조화_20✅_20완료_3',['로그 시스템 구조화 ✅ 완료',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md48',1,'']]],
+  ['구조_4',['계층 구조',['../md_docs_2design_2architecture.html#autotoc_md207',1,'']]],
+  ['구조_20✅_20완료_5',['통합 의존성 주입 구조 ✅ 완료',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md57',1,'']]],
+  ['구조_20개선_6',['9.3. 의존성 주입 구조 개선',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md169',1,'']]],
+  ['구조_20및_20방식_7',['구조 및 방식',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md135',1,'']]],
+  ['구조_20및_20환경_20구축_8',['[v] 1. 프로젝트 구조 및 환경 구축',['../md_docs_2_plan_2frime_plan.html#autotoc_md101',1,'']]],
+  ['구조_20설계_9',['구조 설계',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md64',1,'3. 메모리 추적 데이터 구조 설계'],['../md_docs_2_plan_2mock_test_plan.html#autotoc_md168',1,'9.2. HAL 구조 설계']]],
+  ['구조_20설계_20완료_10',['2. 폴더 구조 설계 [ 완료 ]',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md142',1,'']]],
+  ['구조_20설정_11',['3. 프로젝트 구조 설정',['../md_docs_2_plan_201__environment__setup__guide.html#autotoc_md11',1,'']]],
+  ['구조_20정립_12',['1.2 계층적 디렉토리 구조 정립',['../md_docs_2_plan_2frime_plan.html#autotoc_md103',1,'']]],
+  ['구축_13',['구축',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md74',1,'자동화된 품질 분석 시스템 구축'],['../md_docs_2_plan_201__environment__setup__guide.html#autotoc_md1',1,'1. 프로젝트 기본 환경 구축'],['../md_docs_2_plan_2mock_test_plan.html#autotoc_md183',1,'10.1. 테스트 품질 관리 체계 구축'],['../md_docs_2_plan_2mock_test_plan.html#autotoc_md170',1,'9.4. 완전한 Header-Only Mock 테스트 환경 구축'],['../md_docs_2_plan_2frime_plan.html#autotoc_md101',1,'[v] 1. 프로젝트 구조 및 환경 구축']]],
+  ['구축_20가이드_14',['DS18B20 프로젝트 환경 구축 가이드',['../md_docs_2_plan_201__environment__setup__guide.html',1,'']]],
+  ['구축_20계획_20및_20절차_15',['Mock 기반 테스트 환경 구축 계획 및 절차',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md139',1,'']]],
+  ['구축_20완료_16',['9. HAL(Hardware Abstraction Layer) 도입 및 완전한 Header-Only 테스트 환경 구축 완료',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md166',1,'']]],
+  ['구현된_20도구들_17',['10.1.2. 구현된 도구들',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md185',1,'']]],
+  ['구현된_20mock_20클래스들_18',['9.4.2. 구현된 Mock 클래스들',['../md_docs_2_plan_2mock_test_plan.html#autotoc_md172',1,'']]],
+  ['구현_19',['구현',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md35',1,'02. 핵심 기능 설계 및 구현'],['../md_docs_2_plan_2frime_plan.html#autotoc_md112',1,'3.1 유닛 테스트 구현'],['../md_docs_2_plan_2frime_plan.html#autotoc_md106',1,'[ ] 2. 핵심 기능 설계 및 구현']]],
+  ['구현_20✅_20완료_20',['구현 ✅ 완료',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md56',1,'HAL(Hardware Abstraction Layer) 구현 ✅ 완료'],['../md_docs_2_plan_202__core__feature__design.html#autotoc_md45',1,'MemoryMonitorService 클래스 구현 ✅ 완료'],['../md_docs_2_plan_202__core__feature__design.html#autotoc_md46',1,'MemoryTrackerService 클래스 구현 ✅ 완료'],['../md_docs_2_plan_202__core__feature__design.html#autotoc_md52',1,'SerialCommandHandler 클래스 구현 ✅ 완료']]],
+  ['구현_20상태_21',['설계 목표 및 구현 상태',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md73',1,'']]],
+  ['구현_20컴포넌트_22',['주요 구현 컴포넌트',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md75',1,'']]],
+  ['구현_20테스트_20문서화_20자동화_20동기화_23',['DS18B20 Domain Layer Core Feature Progress (계획-설계-구현-테스트-문서화-자동화 동기화)',['../md_docs_2_plan_202__core__feature__design.html#autotoc_md20',1,'']]]
+];
