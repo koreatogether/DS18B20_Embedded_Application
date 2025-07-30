@@ -11,13 +11,11 @@ DS18B20 Embedded Application - Code Quality Metrics Monitor
 - 아키텍처 준수도 검사
 """
 
-import os
 import re
 import json
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Dict, Tuple, Any
 
 class CodeMetricsCollector:
     def __init__(self, project_root: str):
@@ -92,7 +90,7 @@ class CodeMetricsCollector:
             try:
                 with open(file_path, 'r', encoding='latin-1') as f:
                     content = f.read()
-            except:
+            except Exception:
                 return {"lines": 0, "functions": 0, "classes": 0, "complexity": 0}
         
         lines = len(content.splitlines())
@@ -175,7 +173,7 @@ class CodeMetricsCollector:
                     if re.search(r'class\s+\w+\s*:\s*public\s+I[A-Z]\w+', content):
                         implementations.append(str(file_path.name))
                         
-                except:
+                except Exception:
                     continue
         
         dip_score = 0.0
@@ -214,7 +212,7 @@ class CodeMetricsCollector:
                         lines = len(f.readlines())
                     if lines > 200:  # 200라인 이상은 큰 파일로 간주
                         large_files.append({"file": str(file_path.name), "lines": lines})
-                except:
+                except Exception:
                     continue
         
         # 큰 파일이 적을수록 높은 점수
@@ -264,7 +262,7 @@ class CodeMetricsCollector:
                     except UnicodeDecodeError:
                         continue
                 else:
-                    print(f"❌ Could not decode test log file")
+                    print("❌ Could not decode test log file")
                     return metrics
                 
                 print(f"📋 Reading test log: {test_log_path}")
@@ -349,7 +347,7 @@ class CodeMetricsCollector:
                     except UnicodeDecodeError:
                         continue
                 else:
-                    print(f"❌ Could not decode build log file")
+                    print("❌ Could not decode build log file")
                     return metrics
                 
                 print(f"📋 Reading build log: {build_log_path}")
@@ -368,9 +366,9 @@ class CodeMetricsCollector:
                 # 컴파일 성공 여부
                 if "SUCCESS" in content:
                     metrics["compilation_success"] = True
-                    print(f"✅ Compilation: SUCCESS")
+                    print("✅ Compilation: SUCCESS")
                 else:
-                    print(f"❌ Compilation: FAILED")
+                    print("❌ Compilation: FAILED")
                 
                 # 경고/오류 개수 (간단한 추정)
                 metrics["warnings_count"] = content.count("warning:")

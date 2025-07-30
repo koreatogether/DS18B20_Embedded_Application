@@ -41,9 +41,7 @@ void tearDown(void)
 void test_long_run_stability_no_error_no_leak()
 {
     // Given: 7일(604800초) 동안 정상 동작, 5분(300회)만에 가상 시간 스케일로 테스트
-    const int virtualTotalSec = 604800; // 7일
-    const int fastIterations = 300;     // 5분
-    const int secPerIter = virtualTotalSec / fastIterations;
+    const int fastIterations = 300; // 5분
     stabilityManager = new MockLongRunStabilityManager();
     stabilityManager->start(2048, 16);
     for (int i = 0; i < fastIterations; ++i)
