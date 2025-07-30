@@ -83,6 +83,7 @@
 	- 위치: tools/quality_metrics/code_metrics.py:441
 - [10] MockStressTestManager::runIoStressTest - 71 lines (limit 50), cyclomatic complexity 22 (limit 8)
 	- 위치: test/mocks/MockStressTestManager.h:317
+  --------------------------------
 - [11] MockStressTestManager::runSystemStabilityTest - 55 lines (limit 50), cyclomatic complexity 16 (limit 8)
 	- 위치: test/mocks/MockStressTestManager.h:521
 - [12] analyze_trends - cyclomatic complexity 13 (limit 8)

@@ -167,6 +167,62 @@ private:
             result.performanceRating = "POOR";
         }
     }
+    // --- Helper functions for IO stress test ---
+    inline void simulateSerialWrite(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.serialWriteOperations; i++)
+        {
+            operations++;
+            currentTimeMs += 5;
+            if (scenario.simulateErrors && i % 50 == 0)
+            {
+                errors++;
+            }
+        }
+    }
+    inline void simulateSerialRead(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.serialReadOperations; i++)
+        {
+            operations++;
+            currentTimeMs += 8;
+            if (scenario.simulateErrors && i % 30 == 0)
+            {
+                errors++;
+            }
+        }
+    }
+    inline void simulateSensorRead(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.sensorReadOperations; i++)
+        {
+            operations++;
+            currentTimeMs += 15;
+            if (scenario.simulateErrors && i % 20 == 0)
+            {
+                errors++;
+            }
+        }
+    }
+    inline void setIoPerformanceRating(StressTestResult &result, double errorRate)
+    {
+        if (result.operationsPerSecond > 100 && errorRate < 0.02)
+        {
+            result.performanceRating = "EXCELLENT";
+        }
+        else if (result.operationsPerSecond > 50 && errorRate < 0.05)
+        {
+            result.performanceRating = "GOOD";
+        }
+        else if (result.operationsPerSecond > 20 && errorRate < 0.10)
+        {
+            result.performanceRating = "FAIR";
+        }
+        else
+        {
+            result.performanceRating = "POOR";
+        }
+    }
     std::vector<StressTestResult> testResults;
     int currentMemoryBytes;
     int initialMemoryBytes;
@@ -333,88 +389,31 @@ public:
     inline StressTestResult runIoStressTest(int scenarioIndex)
     {
         StressTestResult result;
-
         if (scenarioIndex < 0 || scenarioIndex >= ioScenarioCount)
         {
             result.testName = "Invalid_IO_Scenario";
             result.testPassed = false;
             return result;
         }
-
         const IoStressScenario &scenario = ioScenarios[scenarioIndex];
         result.testName = "IO_" + scenario.scenarioName;
-
         int startTime = currentTimeMs;
         int operations = 0;
         int errors = 0;
-
-        // 시리얼 쓰기 시뮬레이션
-        for (int i = 0; i < scenario.serialWriteOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 5; // 시리얼 쓰기는 5ms
-            if (scenario.simulateErrors && i % 50 == 0)
-            {
-                errors++; // 50회마다 에러 발생
-            }
-        }
-
-        // 시리얼 읽기 시뮬레이션
-        for (int i = 0; i < scenario.serialReadOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 8; // 시리얼 읽기는 8ms
-            if (scenario.simulateErrors && i % 30 == 0)
-            {
-                errors++; // 30회마다 에러 발생
-            }
-        }
-
-        // 센서 읽기 시뮬레이션
-        for (int i = 0; i < scenario.sensorReadOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 15; // 센서 읽기는 15ms (DS18B20은 느림)
-            if (scenario.simulateErrors && i % 20 == 0)
-            {
-                errors++; // 20회마다 에러 발생
-            }
-        }
-
+        simulateSerialWrite(scenario, operations, errors, currentTimeMs);
+        simulateSerialRead(scenario, operations, errors, currentTimeMs);
+        simulateSensorRead(scenario, operations, errors, currentTimeMs);
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = operations;
-        result.memoryUsedBytes = operations / 5; // I/O 연산은 약간의 버퍼 메모리 사용
+        result.memoryUsedBytes = operations / 5;
         result.peakMemoryUsage = result.memoryUsedBytes;
         result.errorCount = errors;
-
-        // 성능 메트릭 계산
         result.operationsPerSecond = (result.durationMs > 0) ? (result.operationsPerformed * 1000.0) / result.durationMs : 0.0;
         result.memoryEfficiency = (result.memoryUsedBytes > 0) ? (double)result.operationsPerformed / result.memoryUsedBytes : 100.0;
-
-        // 테스트 통과 조건 (예상 지연시간 및 에러율)
-        int latencyTolerance = scenario.expectedLatencyMs * 30 / 100; // 30% 여유
+        int latencyTolerance = scenario.expectedLatencyMs * 30 / 100;
         double errorRate = (operations > 0) ? (double)errors / operations : 0.0;
-        result.testPassed = (result.durationMs <= (scenario.expectedLatencyMs + latencyTolerance)) &&
-                            (errorRate <= 0.1); // 에러율 10% 이하
-
-        // 성능 등급 결정 (처리량 및 에러율 기준)
-        if (result.operationsPerSecond > 100 && errorRate < 0.02)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 50 && errorRate < 0.05)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 20 && errorRate < 0.10)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-
+        result.testPassed = (result.durationMs <= (scenario.expectedLatencyMs + latencyTolerance)) && (errorRate <= 0.1);
+        setIoPerformanceRating(result, errorRate);
         testResults.push_back(result);
         return result;
     }
@@ -532,58 +531,32 @@ public:
     }
 
     // 특정 부하 수준에서 시스템 안정성 테스트
-    inline StressTestResult runSystemStabilityTest(int loadLevel)
+    // --- Helper functions for System Stability Test ---
+    inline void simulateMemoryPressure(int i, int &errors)
     {
-        StressTestResult result;
-        result.testName = "System_Stability_Load_" + std::to_string(loadLevel);
-
-        int startTime = currentTimeMs;
-        int operations = 0;
-        int errors = 0;
-
-        // 부하 수준에 따른 연산 수 결정
-        int baseOperations = 1000;
-        int totalOperations = baseOperations * loadLevel;
-
-        for (int i = 0; i < totalOperations; i++)
+        if (i % 100 == 0)
         {
-            operations++;
-
-            // 메모리 압박 시뮬레이션
-            if (i % 100 == 0)
+            currentMemoryBytes -= 10;
+            if (currentMemoryBytes < 100)
             {
-                currentMemoryBytes -= 10;
-                if (currentMemoryBytes < 100)
-                {
-                    errors++;
-                    currentMemoryBytes = 100; // 최소 메모리 유지
-                }
-            }
-
-            // CPU 부하 시뮬레이션
-            currentTimeMs += (loadLevel > 5) ? 2 : 1;
-
-            // 간헐적 메모리 복구
-            if (i % 500 == 0)
-            {
-                currentMemoryBytes += 50; // 일부 메모리 복구
+                errors++;
+                currentMemoryBytes = 100;
             }
         }
-
-        result.durationMs = currentTimeMs - startTime;
-        result.operationsPerformed = operations;
-        result.memoryUsedBytes = initialMemoryBytes - currentMemoryBytes;
-        result.peakMemoryUsage = result.memoryUsedBytes;
-        result.errorCount = errors;
-
-        // 성능 메트릭
-        result.operationsPerSecond = (result.durationMs > 0) ? (operations * 1000.0) / result.durationMs : 0.0;
-        result.memoryEfficiency = (result.memoryUsedBytes > 0) ? (double)operations / result.memoryUsedBytes : 100.0;
-
-        // 안정성 평가
-        double errorRate = (operations > 0) ? (double)errors / operations : 0.0;
-        result.testPassed = (errorRate <= 0.05) && (currentMemoryBytes > 200);
-
+    }
+    inline void simulateCpuLoad(int loadLevel)
+    {
+        currentTimeMs += (loadLevel > 5) ? 2 : 1;
+    }
+    inline void simulateMemoryRecovery(int i)
+    {
+        if (i % 500 == 0)
+        {
+            currentMemoryBytes += 50;
+        }
+    }
+    inline void setSystemStabilityPerformanceRating(StressTestResult &result, double errorRate)
+    {
         if (errorRate < 0.01 && result.operationsPerSecond > 100)
         {
             result.performanceRating = "EXCELLENT";
@@ -600,7 +573,40 @@ public:
         {
             result.performanceRating = "POOR";
         }
+    }
+    // ...existing code...
+    inline StressTestResult runSystemStabilityTest(int loadLevel)
+    {
+        StressTestResult result;
+        result.testName = "System_Stability_Load_" + std::to_string(loadLevel);
 
+        int startTime = currentTimeMs;
+        int operations = 0;
+        int errors = 0;
+
+        int baseOperations = 1000;
+        int totalOperations = baseOperations * loadLevel;
+
+        for (int i = 0; i < totalOperations; i++)
+        {
+            operations++;
+            simulateMemoryPressure(i, errors);
+            simulateCpuLoad(loadLevel);
+            simulateMemoryRecovery(i);
+        }
+
+        result.durationMs = currentTimeMs - startTime;
+        result.operationsPerformed = operations;
+        result.memoryUsedBytes = initialMemoryBytes - currentMemoryBytes;
+        result.peakMemoryUsage = result.memoryUsedBytes;
+        result.errorCount = errors;
+
+        result.operationsPerSecond = (result.durationMs > 0) ? (operations * 1000.0) / result.durationMs : 0.0;
+        result.memoryEfficiency = (result.memoryUsedBytes > 0) ? (double)operations / result.memoryUsedBytes : 100.0;
+
+        double errorRate = (operations > 0) ? (double)errors / operations : 0.0;
+        result.testPassed = (errorRate <= 0.05) && (currentMemoryBytes > 200);
+        setSystemStabilityPerformanceRating(result, errorRate);
         testResults.push_back(result);
         return result;
     }
