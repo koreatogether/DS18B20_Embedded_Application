@@ -3,19 +3,6 @@
 
 ## Codacy Issue Summary
 
-- **All issues:** 109
-
-### Code patterns
-	- Detect Missing System Include Files: 60
-	- Enforce Medium Cyclomatic Complexity Threshold: 12
-	- Detect Python Source Code Errors with Pyflakes: 10
-	- Enforce Medium Number of Lines of Code (NLOC) Limit: 8
-	- Avoid Unused Imports: 5
-	- Avoid Incorrect Use of strncpy: 3
-	- Detect Unused Variable Assignments: 2
-	- Avoid Redundant Variable Assignments: 2
-	- Others: 7
-  
 ---
 
 ## 주요 Critical(치명적) 위험 항목 목록
@@ -36,7 +23,7 @@
 	 - 해결 방법: 테스트 코드에서 strlen 사용 전 summary 버퍼의 마지막 바이트가 항상 '\0'임을 assert로 명확히 체크하여 null 종료 보장. 정적 분석기 오탐 방지.
 	 - 위치: `test/integration/test_memory_leak_detection.cpp:41` (assert 추가)
 
-**Input Validation 취약점 (CWE-126)**
+**Input Validation 취약점 (CWE-126)** [현재로썬 조치 필요 없음 ]
     - null 종료되지 않은 문자열에 strlen 사용 시 오버리드 및 크래시 위험
     - 예시 코드: `TEST_ASSERT_GREATER_THAN(0, strlen(analysis.summary));`
     - 위치: `test/integration/test_memory_leak_detection.cpp:43`
@@ -71,7 +58,7 @@
 	- 코드: `except:`
  [v] except에 예외 타입 미지정 (tools/quality_metrics/code_metrics.py:95)
 	- 코드: `except:`
-- [ ] try, except, continue 사용 (tools/quality_metrics/code_metrics.py:176)
+- [v] try, except, continue 사용 (tools/quality_metrics/code_metrics.py:176)
     - 코드: `except Exception:`
     - 문제: 예외 발생 시 아무런 처리 없이 무시하고 계속 진행하면, 중요한 오류를 놓칠 수 있음. 최소한 로그 출력 또는 예외 재발생 필요
 
