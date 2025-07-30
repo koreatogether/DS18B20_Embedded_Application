@@ -1,3 +1,52 @@
+// --- Helper functions for CPU stress test ---
+inline void simulateCpuLoops(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+{
+    for (int i = 0; i < scenario.cpuIntensiveLoops; i++)
+    {
+        operations++;
+        currentTimeMs += 1;
+    }
+}
+inline void simulateMathCalculations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+{
+    for (int i = 0; i < scenario.mathCalculations; i++)
+    {
+        operations++;
+        currentTimeMs += 2;
+    }
+}
+inline void simulateStringOperations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
+{
+    for (int i = 0; i < scenario.stringOperations; i++)
+    {
+        operations++;
+        currentTimeMs += 3;
+    }
+}
+inline void setPerformanceRating(StressTestResult &result)
+{
+    if (result.operationsPerSecond > 1000)
+    {
+        result.performanceRating = "EXCELLENT";
+    }
+    else if (result.operationsPerSecond > 500)
+    {
+        result.performanceRating = "GOOD";
+    }
+    else if (result.operationsPerSecond > 200)
+    {
+        result.performanceRating = "FAIR";
+    }
+    else
+    {
+        result.performanceRating = "POOR";
+    }
+}
+inline bool isTestPassed(int durationMs, int expectedDurationMs)
+{
+    int timeTolerance = expectedDurationMs * 20 / 100;
+    return (durationMs <= (expectedDurationMs + timeTolerance));
+}
 #ifndef MOCK_STRESS_TEST_MANAGER_H
 #define MOCK_STRESS_TEST_MANAGER_H
 
@@ -242,73 +291,28 @@ public:
     inline StressTestResult runCpuStressTest(int scenarioIndex)
     {
         StressTestResult result;
-
         if (scenarioIndex < 0 || scenarioIndex >= cpuScenarioCount)
         {
             result.testName = "Invalid_CPU_Scenario";
             result.testPassed = false;
             return result;
         }
-
         const CpuStressScenario &scenario = cpuScenarios[scenarioIndex];
         result.testName = "CPU_" + scenario.scenarioName;
-
         int startTime = currentTimeMs;
         int operations = 0;
-
-        // CPU 집약적 연산 시뮬레이션
-        for (int i = 0; i < scenario.cpuIntensiveLoops; i++)
-        {
-            operations++;
-            currentTimeMs += 1; // 각 루프마다 1ms
-        }
-
-        // 수학 계산 시뮬레이션
-        for (int i = 0; i < scenario.mathCalculations; i++)
-        {
-            operations++;
-            currentTimeMs += 2; // 수학 계산은 더 오래 걸림
-        }
-
-        // 문자열 처리 시뮬레이션
-        for (int i = 0; i < scenario.stringOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 3; // 문자열 처리가 가장 오래 걸림
-        }
-
+        simulateCpuLoops(scenario, operations, currentTimeMs);
+        simulateMathCalculations(scenario, operations, currentTimeMs);
+        simulateStringOperations(scenario, operations, currentTimeMs);
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = operations;
-        result.memoryUsedBytes = operations / 10; // CPU 연산도 약간의 메모리 사용
+        result.memoryUsedBytes = operations / 10;
         result.peakMemoryUsage = result.memoryUsedBytes;
-        result.errorCount = 0; // CPU 테스트에서는 일반적으로 에러 없음
-
-        // 성능 메트릭 계산
+        result.errorCount = 0;
         result.operationsPerSecond = (result.durationMs > 0) ? (result.operationsPerformed * 1000.0) / result.durationMs : 0.0;
         result.memoryEfficiency = (result.memoryUsedBytes > 0) ? (double)result.operationsPerformed / result.memoryUsedBytes : 100.0;
-
-        // 테스트 통과 조건 (예상 시간 대비)
-        int timeTolerance = scenario.expectedDurationMs * 20 / 100; // 20% 여유
-        result.testPassed = (result.durationMs <= (scenario.expectedDurationMs + timeTolerance));
-
-        // 성능 등급 결정 (처리량 기준)
-        if (result.operationsPerSecond > 1000)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 500)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 200)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-
+        result.testPassed = isTestPassed(result.durationMs, scenario.expectedDurationMs);
+        setPerformanceRating(result);
         testResults.push_back(result);
         return result;
     }
