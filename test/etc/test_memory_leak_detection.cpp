@@ -94,12 +94,11 @@ void test_memory_service_repeated_operations_no_leak()
     memoryService->setFreeMemoryBytes(initialMemory);
 
     // When: 동일한 메모리 연산을 반복 수행
-    std::string operation_result;
     for (int i = 0; i < LEAK_DETECTION_ITERATIONS; i++)
     {
-        operation_result = memoryService->getFreeMemory();
-        operation_result = memoryService->getStructMemoryInfo();
-        operation_result = memoryService->stressTestMemory();
+        memoryService->getFreeMemory();
+        memoryService->getStructMemoryInfo();
+        memoryService->stressTestMemory();
 
         // 메모리 상태가 안정적임을 시뮬레이션
         memoryService->setFreeMemoryBytes(initialMemory);
