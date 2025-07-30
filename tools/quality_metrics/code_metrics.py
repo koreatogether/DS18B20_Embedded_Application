@@ -436,76 +436,81 @@ class CodeMetricsCollector:
             return weighted_sum / total_weight if total_weight > 0 else 0.0
         return 0.0
 
+    def _report_code_metrics(self):
+        m = self.metrics['code_metrics']
+        return f"""
+### 📈 Code Metrics
+- **Source Files**: {m['source_files']} (.cpp)
+- **Header Files**: {m['header_files']} (.h)
+- **Test Files**: {m['test_files']}
+- **Total Lines**: {m['total_lines']:,}
+- **Functions**: {m['functions']}
+- **Classes**: {m['classes']}
+- **Average Complexity**: {m['avg_complexity']:.1f}
+"""
+
+    def _report_architecture_metrics(self):
+        m = self.metrics['architecture_metrics']
+        return f"""
+### 🏗️ Architecture Metrics (Score: {m['architecture_score']:.1f}/100)
+- **Layer Separation**: {m['layer_separation']['score']:.1f}/100
+  - Domain files: {m['layer_separation']['domain_files']}
+  - Application files: {m['layer_separation']['application_files']}
+  - Infrastructure files: {m['layer_separation']['infrastructure_files']}
+- **Dependency Inversion**: {m['dependency_inversion']['score']:.1f}/100
+  - Interfaces: {m['dependency_inversion']['interfaces_count']}
+  - Implementations: {m['dependency_inversion']['implementations_count']}
+- **Interface Usage**: {m['interface_usage']['score']:.1f}/100
+  - Mock files: {m['interface_usage']['mock_files_count']}
+"""
+
+    def _report_test_metrics(self):
+        m = self.metrics['test_metrics']
+        return f"""
+### 🧪 Test Metrics
+- **Test Files**: {m['test_files']}
+- **Test Cases**: {m['test_cases']}
+- **Success Rate**: {m['test_success_rate']:.1f}%
+- **Execution Time**: {m['execution_time']:.3f}s
+- **Coverage Estimate**: {m['coverage_estimate']:.1f}%
+"""
+
+    def _report_build_metrics(self):
+        m = self.metrics['build_metrics']
+        return f"""
+### 🔨 Build Metrics
+- **Compilation**: {'✅ Success' if m['compilation_success'] else '❌ Failed'}
+- **RAM Usage**: {m['ram_usage_percent']:.1f}%
+- **Flash Usage**: {m['flash_usage_percent']:.1f}%
+- **Warnings**: {m['warnings_count']}
+- **Errors**: {m['errors_count']}
+"""
+
     def generate_report(self) -> str:
-        """품질 메트릭 리포트 생성"""
-        # 모든 메트릭 수집
         self.metrics["code_metrics"] = self.collect_code_metrics()
         self.metrics["architecture_metrics"] = self.collect_architecture_metrics()
         self.metrics["test_metrics"] = self.collect_test_metrics()
         self.metrics["build_metrics"] = self.collect_build_metrics()
         self.metrics["quality_score"] = self.calculate_quality_score()
-        
-        # 리포트 생성
         report = f"""
 # DS18B20 Embedded Application - Code Quality Report
 Generated: {self.metrics['timestamp']}
-
-## 📊 Overall Quality Score: {self.metrics['quality_score']:.1f}/100
-
-### 📈 Code Metrics
-- **Source Files**: {self.metrics['code_metrics']['source_files']} (.cpp)
-- **Header Files**: {self.metrics['code_metrics']['header_files']} (.h)
-- **Test Files**: {self.metrics['code_metrics']['test_files']}
-- **Total Lines**: {self.metrics['code_metrics']['total_lines']:,}
-- **Functions**: {self.metrics['code_metrics']['functions']}
-- **Classes**: {self.metrics['code_metrics']['classes']}
-- **Average Complexity**: {self.metrics['code_metrics']['avg_complexity']:.1f}
-
-### 🏗️ Architecture Metrics (Score: {self.metrics['architecture_metrics']['architecture_score']:.1f}/100)
-- **Layer Separation**: {self.metrics['architecture_metrics']['layer_separation']['score']:.1f}/100
-  - Domain files: {self.metrics['architecture_metrics']['layer_separation']['domain_files']}
-  - Application files: {self.metrics['architecture_metrics']['layer_separation']['application_files']}
-  - Infrastructure files: {self.metrics['architecture_metrics']['layer_separation']['infrastructure_files']}
-- **Dependency Inversion**: {self.metrics['architecture_metrics']['dependency_inversion']['score']:.1f}/100
-  - Interfaces: {self.metrics['architecture_metrics']['dependency_inversion']['interfaces_count']}
-  - Implementations: {self.metrics['architecture_metrics']['dependency_inversion']['implementations_count']}
-- **Interface Usage**: {self.metrics['architecture_metrics']['interface_usage']['score']:.1f}/100
-  - Mock files: {self.metrics['architecture_metrics']['interface_usage']['mock_files_count']}
-
-### 🧪 Test Metrics
-- **Test Files**: {self.metrics['test_metrics']['test_files']}
-- **Test Cases**: {self.metrics['test_metrics']['test_cases']}
-- **Success Rate**: {self.metrics['test_metrics']['test_success_rate']:.1f}%
-- **Execution Time**: {self.metrics['test_metrics']['execution_time']:.3f}s
-- **Coverage Estimate**: {self.metrics['test_metrics']['coverage_estimate']:.1f}%
-
-### 🔨 Build Metrics
-- **Compilation**: {'✅ Success' if self.metrics['build_metrics']['compilation_success'] else '❌ Failed'}
-- **RAM Usage**: {self.metrics['build_metrics']['ram_usage_percent']:.1f}%
-- **Flash Usage**: {self.metrics['build_metrics']['flash_usage_percent']:.1f}%
-- **Warnings**: {self.metrics['build_metrics']['warnings_count']}
-- **Errors**: {self.metrics['build_metrics']['errors_count']}
-
-## 📋 Recommendations
-
-"""
-        
-        # 권장사항 추가
+\n## 📊 Overall Quality Score: {self.metrics['quality_score']:.1f}/100\n"""
+        report += self._report_code_metrics()
+        report += self._report_architecture_metrics()
+        report += self._report_test_metrics()
+        report += self._report_build_metrics()
+        report += "\n## 📋 Recommendations\n\n"
         if self.metrics['quality_score'] < 70:
             report += "- 🚨 Overall quality score is below 70. Consider improving architecture and test coverage.\n"
-        
         if self.metrics['architecture_metrics']['dependency_inversion']['score'] < 80:
             report += "- 🏗️ Consider adding more interfaces to improve dependency inversion.\n"
-        
         if self.metrics['test_metrics']['test_success_rate'] < 95:
             report += "- 🧪 Test success rate is below 95%. Fix failing tests.\n"
-        
         if self.metrics['build_metrics']['ram_usage_percent'] > 80:
             report += "- 💾 RAM usage is high (>80%). Consider memory optimization.\n"
-        
         if self.metrics['code_metrics']['avg_complexity'] > 10:
             report += "- 🔄 Average function complexity is high. Consider refactoring complex functions.\n"
-        
         return report
 
     def save_metrics(self, output_path: str):

@@ -79,7 +79,7 @@
 	- 위치: tools/quality_metrics/code_metrics.py:229
 - [8] MockStressTestManager::runMemoryStressTest - 59 lines (limit 50), cyclomatic complexity 15 (limit 8)
 	- 위치: test/mocks/MockStressTestManager.h:163
-- [9] generate_report - 61 lines (limit 50)
+- [v][9] generate_report - 61 lines (limit 50)
 	- 위치: tools/quality_metrics/code_metrics.py:441
 - [10] MockStressTestManager::runIoStressTest - 71 lines (limit 50), cyclomatic complexity 22 (limit 8)
 	- 위치: test/mocks/MockStressTestManager.h:317
