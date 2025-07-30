@@ -8,43 +8,32 @@ SerialCommandHandler::~SerialCommandHandler() {}
 
 std::string SerialCommandHandler::processCommand(const std::string &command)
 {
-    if (command == "help" || command == "menu")
+    static const std::map<std::string, std::function<std::string()>> commandMap = {
+        {"help", [this]()
+         { return handleHelp(); }},
+        {"menu", [this]()
+         { return handleHelp(); }},
+        {"memtest", [this]()
+         { return handleMemTest(); }},
+        {"memstress", [this]()
+         { return handleMemStress(); }},
+        {"memstruct", [this]()
+         { return handleMemStruct(); }},
+        {"memfree", [this]()
+         { return handleMemFree(); }},
+        {"memtoggle", [this]()
+         { return handleMemToggle(); }},
+        {"memtrack", [this]()
+         { return _memoryAnalyzer->toggleTracking(); }},
+        {"memreport", [this]()
+         { return _memoryAnalyzer->getMemoryReport(); }}};
+
+    auto it = commandMap.find(command);
+    if (it != commandMap.end())
     {
-        return handleHelp();
+        return it->second();
     }
-    else if (command == "memtest")
-    {
-        return _memoryAnalyzer->getRuntimeAnalysis();
-    }
-    else if (command == "memstress")
-    {
-        // memstress는 getRuntimeAnalysis와 동일한 기능을 호출하도록 임시 연결
-        return _memoryAnalyzer->getRuntimeAnalysis();
-    }
-    else if (command == "memstruct")
-    {
-        return _memoryAnalyzer->getStructureAnalysis();
-    }
-    else if (command == "memfree")
-    {
-        return _memoryAnalyzer->getFreeMemory();
-    }
-    else if (command == "memtoggle")
-    {
-        return _memoryAnalyzer->toggleMonitoring();
-    }
-    else if (command == "memtrack")
-    {
-        return _memoryAnalyzer->toggleTracking();
-    }
-    else if (command == "memreport")
-    {
-        return _memoryAnalyzer->getMemoryReport();
-    }
-    else
-    {
-        return "Unknown command: " + command;
-    }
+    return "Unknown command: " + command;
 }
 
 std::string SerialCommandHandler::handleHelp()
