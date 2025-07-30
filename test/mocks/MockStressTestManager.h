@@ -437,29 +437,9 @@ public:
     }
 
     // 종합 리포트 생성
-    inline std::string generateComprehensiveReport()
+    // 헬퍼 함수: 통계 요약 생성
+    std::string generateSummary(int totalTests, int passedTests, int totalOperations, int totalMemoryUsed, int totalErrors, double totalDuration) const
     {
-        std::string report = "=== COMPREHENSIVE STRESS TEST REPORT ===\n";
-
-        int totalTests = testResults.size();
-        int passedTests = 0;
-        int totalOperations = 0;
-        int totalMemoryUsed = 0;
-        int totalErrors = 0;
-        double totalDuration = 0;
-
-        // 통계 계산
-        for (const auto &result : testResults)
-        {
-            if (result.testPassed)
-                passedTests++;
-            totalOperations += result.operationsPerformed;
-            totalMemoryUsed += result.memoryUsedBytes;
-            totalErrors += result.errorCount;
-            totalDuration += result.durationMs;
-        }
-
-        // 종합 통계
         char buffer[1024];
         snprintf(buffer, sizeof(buffer),
                  "Summary:\n"
@@ -476,11 +456,14 @@ public:
                  totalTests - passedTests, totalOperations, totalMemoryUsed,
                  totalErrors, totalDuration,
                  (totalDuration > 0) ? (totalOperations * 1000.0 / totalDuration) : 0.0);
+        return std::string(buffer);
+    }
 
-        report += buffer;
-
-        // 개별 테스트 결과
-        report += "Individual Test Results:\n";
+    // 헬퍼 함수: 개별 테스트 결과 생성
+    std::string generateIndividualResults() const
+    {
+        std::string resultStr;
+        char buffer[256];
         for (const auto &result : testResults)
         {
             snprintf(buffer, sizeof(buffer),
@@ -489,31 +472,46 @@ public:
                      result.testPassed ? "PASS" : "FAIL",
                      result.operationsPerSecond,
                      result.performanceRating.c_str());
-            report += buffer;
+            resultStr += buffer;
         }
+        return resultStr;
+    }
 
-        // 시스템 건강성 평가
-        report += "\nSystem Health Assessment:\n";
+    // 헬퍼 함수: 시스템 건강성 평가
+    std::string generateSystemHealth(double passRate, double errorRate) const
+    {
+        if (passRate >= 90 && errorRate <= 2)
+            return "Status: EXCELLENT - System handles stress very well\n";
+        else if (passRate >= 75 && errorRate <= 5)
+            return "Status: GOOD - System performs adequately under stress\n";
+        else if (passRate >= 50 && errorRate <= 10)
+            return "Status: FAIR - System shows some stress symptoms\n";
+        else
+            return "Status: POOR - System struggles under stress\n";
+    }
+
+    inline std::string generateComprehensiveReport()
+    {
+        std::string report = "=== COMPREHENSIVE STRESS TEST REPORT ===\n";
+        int totalTests = testResults.size();
+        int passedTests = 0, totalOperations = 0, totalMemoryUsed = 0, totalErrors = 0;
+        double totalDuration = 0;
+        for (const auto &result : testResults)
+        {
+            if (result.testPassed)
+                passedTests++;
+            totalOperations += result.operationsPerformed;
+            totalMemoryUsed += result.memoryUsedBytes;
+            totalErrors += result.errorCount;
+            totalDuration += result.durationMs;
+        }
+        report += generateSummary(totalTests, passedTests, totalOperations, totalMemoryUsed, totalErrors, totalDuration);
+        report += "Individual Test Results:\n";
+        report += generateIndividualResults();
         double passRate = (totalTests > 0) ? (passedTests * 100.0 / totalTests) : 0.0;
         double errorRate = (totalOperations > 0) ? (totalErrors * 100.0 / totalOperations) : 0.0;
-
-        if (passRate >= 90 && errorRate <= 2)
-        {
-            report += "Status: EXCELLENT - System handles stress very well\n";
-        }
-        else if (passRate >= 75 && errorRate <= 5)
-        {
-            report += "Status: GOOD - System performs adequately under stress\n";
-        }
-        else if (passRate >= 50 && errorRate <= 10)
-        {
-            report += "Status: FAIR - System shows some stress symptoms\n";
-        }
-        else
-        {
-            report += "Status: POOR - System struggles under stress\n";
-        }
-
+        report += "\nSystem Health Assessment:\n";
+        report += generateSystemHealth(passRate, errorRate);
         return report;
     }
 
