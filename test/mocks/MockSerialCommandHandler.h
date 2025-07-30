@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <functional>
 
 /**
  * @class MockSerialCommandHandler
@@ -28,22 +29,34 @@ public:
     {
         using Handler = std::function<std::string()>;
         static const std::map<std::string, Handler> handlers = {
-            {"help", [this]() { return getHelpMessage(); }},
-            {"menu", [this]() { return getHelpMessage(); }},
-            {"memory", [this]() { return _memoryAnalyzer->getFreeMemory(); }},
-            {"memory structure", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"mem struct", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"memory runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"mem runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"memory toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"mem toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"status", []() { return std::string("System Status: Running"); }}
-        };
+            {"help", [this]()
+             { return getHelpMessage(); }},
+            {"menu", [this]()
+             { return getHelpMessage(); }},
+            {"memory", [this]()
+             { return _memoryAnalyzer->getFreeMemory(); }},
+            {"memory structure", [this]()
+             { return _memoryAnalyzer->getStructureAnalysis(); }},
+            {"mem struct", [this]()
+             { return _memoryAnalyzer->getStructureAnalysis(); }},
+            {"memory runtime", [this]()
+             { return _memoryAnalyzer->getRuntimeAnalysis(); }},
+            {"mem runtime", [this]()
+             { return _memoryAnalyzer->getRuntimeAnalysis(); }},
+            {"memory toggle", [this]()
+             { return _memoryAnalyzer->toggleMonitoring(); }},
+            {"mem toggle", [this]()
+             { return _memoryAnalyzer->toggleMonitoring(); }},
+            {"status", []()
+             { return std::string("System Status: Running"); }}};
         std::string response;
         auto it = handlers.find(command);
-        if (it != handlers.end()) {
+        if (it != handlers.end())
+        {
             response = it->second();
-        } else {
+        }
+        else
+        {
             response = "Unknown command: " + command + ". Type 'help' for available commands.";
         }
         _responses[command] = response;
