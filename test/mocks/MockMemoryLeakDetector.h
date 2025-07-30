@@ -6,6 +6,19 @@
 #define MAX_MEMORY_SNAPSHOTS 50
 #define MAX_STRING_LENGTH 64
 
+// --- 안전한 문자열 복사 전역 유틸리티 ---
+inline void safeCopyString(char *dest, const char *src, int maxLength)
+{
+    if (!dest || maxLength <= 0)
+        return;
+    if (!src)
+        src = "";
+    int i = 0;
+    for (; i < maxLength - 1 && src[i] != '\0'; ++i)
+        dest[i] = src[i];
+    dest[i] = '\0';
+}
+
 /**
  * @struct MemorySnapshotFixed
  * @brief Header-Only 환경을 위한 고정 크기 메모리 스냅샷
@@ -30,11 +43,8 @@ struct MemorySnapshotFixed
         : timestamp(ts), freeBytes(free), usedBytes(used)
     {
         // 안전한 문자열 복사
-        strncpy(eventType, type ? type : "", MAX_STRING_LENGTH - 1);
-        eventType[MAX_STRING_LENGTH - 1] = '\0';
-
-        strncpy(description, desc ? desc : "", MAX_STRING_LENGTH - 1);
-        description[MAX_STRING_LENGTH - 1] = '\0';
+        safeCopyString(eventType, type ? type : "", MAX_STRING_LENGTH);
+        safeCopyString(description, desc ? desc : "", MAX_STRING_LENGTH);
     }
 };
 
@@ -71,6 +81,8 @@ class MockMemoryLeakDetector
 public:
     inline MockMemoryLeakDetector();
     virtual ~MockMemoryLeakDetector() = default;
+    // 안전한 문자열 복사 유틸리티 (static) - deprecated, 전역 함수 사용 권장
+    // static void safeCopyString(char *dest, const char *src, int maxLength);
 
     // 기본 메모리 추적 기능
     inline void recordSnapshot(int freeBytes, int usedBytes,
@@ -116,7 +128,6 @@ private:
     inline void addSnapshot(const MemorySnapshotFixed &snapshot);
     inline float calculateMemoryTrend() const;
     inline int findMaxMemoryDecrease() const;
-    inline void safeCopyString(char *dest, const char *src, int maxLength);
 };
 
 // --- 구현부 ---
@@ -378,11 +389,4 @@ inline int MockMemoryLeakDetector::findMaxMemoryDecrease() const
     return maxDecrease;
 }
 
-inline void MockMemoryLeakDetector::safeCopyString(char *dest, const char *src, int maxLength)
-{
-    if (!dest || !src || maxLength <= 0)
-        return;
-
-    strncpy(dest, src, maxLength - 1);
-    dest[maxLength - 1] = '\0';
-}
+// (클래스 외부 전역 safeCopyString 사용, 중복 정의 제거)

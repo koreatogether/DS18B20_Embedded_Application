@@ -38,6 +38,8 @@ void test_basic_memory_leak_detection()
     TEST_ASSERT_TRUE(analysis.suspiciousDecreaseCount >= 3);
     TEST_ASSERT_TRUE(analysis.maxMemoryDecrease >= 10);
     TEST_ASSERT_TRUE(analysis.averageMemoryTrend < 0);
+    // null termination 보장 확인 (정적 분석기 오탐 방지)
+    TEST_ASSERT_EQUAL_CHAR('\0', analysis.summary[sizeof(analysis.summary) - 1]);
     TEST_ASSERT_GREATER_THAN(0, strlen(analysis.summary));
 }
 

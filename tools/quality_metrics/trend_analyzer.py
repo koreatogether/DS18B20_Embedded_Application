@@ -6,10 +6,10 @@ DS18B20 Embedded Application - Quality Metrics Trend Analysis
 품질 메트릭의 변화를 추적하고 트렌드를 분석하는 도구입니다.
 """
 
-import os
+ 
 import json
 import glob
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
 
@@ -144,8 +144,7 @@ Generated: {trends['analysis_date']}
         md_path = self.quality_logs_dir / f"trend_report_{timestamp}.md"
         with open(md_path, 'w', encoding='utf-8') as f:
             f.write(report)
-        
-        print(f"📊 Trend analysis saved:")
+        print("📊 Trend analysis saved:")
         print(f"  JSON: {json_path}")
         print(f"  Report: {md_path}")
         
