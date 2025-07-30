@@ -93,14 +93,8 @@ class QualityTrendAnalyzer:
         
         return trends
     
-    def generate_trend_report(self) -> str:
-        """트렌드 분석 리포트 생성"""
-        trends = self.analyze_trends()
-        
-        if "message" in trends:
-            return f"# Quality Trends Analysis\n\n{trends['message']}\n"
-        
-        report = f"""
+    def _trend_report_header(self, trends):
+        return f"""
 # DS18B20 Quality Metrics Trend Analysis
 Generated: {trends['analysis_date']}
 
@@ -114,18 +108,35 @@ Generated: {trends['analysis_date']}
 
 ## 🔍 Detailed Changes
 """
-        
+
+    def _trend_report_changes(self, trends):
+        report = ""
         for category, data in trends["metrics_comparison"].items():
             if "changes" in data and data["changes"]:
                 report += f"\n### {category.replace('_', ' ').title()}\n"
                 for metric, change in data["changes"].items():
                     direction = "📈" if change > 0 else "📉"
                     report += f"- **{metric}**: {direction} {change:+.2f}\n"
-        
+        return report
+
+    def _trend_report_recommendations(self, trends):
         if trends["recommendations"]:
-            report += "\n## 💡 Recommendations\n"
+            recs = "\n## 💡 Recommendations\n"
             for rec in trends["recommendations"]:
-                report += f"- {rec}\n"
+                recs += f"- {rec}\n"
+            return recs
+        return ""
+
+    def generate_trend_report(self) -> str:
+        """트렌드 분석 리포트 생성"""
+        trends = self.analyze_trends()
+        
+        if "message" in trends:
+            return f"# Quality Trends Analysis\n\n{trends['message']}\n"
+        
+        report = self._trend_report_header(trends)
+        report += self._trend_report_changes(trends)
+        report += self._trend_report_recommendations(trends)
         
         return report
     
