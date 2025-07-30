@@ -1,4 +1,3 @@
-
 생성일자 : 25.07.30
 
 ## Codacy Issue Summary
@@ -61,4 +60,33 @@
 - [v] try, except, continue 사용 (tools/quality_metrics/code_metrics.py:176)
     - 코드: `except Exception:`
     - 문제: 예외 발생 시 아무런 처리 없이 무시하고 계속 진행하면, 중요한 오류를 놓칠 수 있음. 최소한 로그 출력 또는 예외 재발생 필요
+
+#### code complexity 
+
+- [1] MockStressTestManager::generateComprehensiveReport - 67 lines (limit 50), cyclomatic complexity 15 (limit 8)
+	- 위치: test/mocks/MockStressTestManager.h:440
+- [2] calculate_quality_score - cyclomatic complexity 12 (limit 8)
+	- 위치: tools/quality_metrics/code_metrics.py:388
+- [3] generate_trend_report - cyclomatic complexity 9 (limit 8)
+	- 위치: tools/quality_metrics/trend_analyzer.py:96
+- [4] SerialCommandHandler::processCommand - cyclomatic complexity 10 (limit 8)
+	- 위치: src/infrastructure/SerialCommandHandler.cpp:9
+- [5] MockStressTestManager::runCpuStressTest - 56 lines (limit 50), cyclomatic complexity 11 (limit 8)
+	- 위치: test/mocks/MockStressTestManager.h:242
+- [6] collect_build_metrics - cyclomatic complexity 10 (limit 8), 51 lines (limit 50)
+	- 위치: tools/quality_metrics/code_metrics.py:320
+- [7] collect_test_metrics - cyclomatic complexity 13 (limit 8), 67 lines (limit 50)
+	- 위치: tools/quality_metrics/code_metrics.py:229
+- [8] MockStressTestManager::runMemoryStressTest - 59 lines (limit 50), cyclomatic complexity 15 (limit 8)
+	- 위치: test/mocks/MockStressTestManager.h:163
+- [9] generate_report - 61 lines (limit 50)
+	- 위치: tools/quality_metrics/code_metrics.py:441
+- [10] MockStressTestManager::runIoStressTest - 71 lines (limit 50), cyclomatic complexity 22 (limit 8)
+	- 위치: test/mocks/MockStressTestManager.h:317
+- [11] MockStressTestManager::runSystemStabilityTest - 55 lines (limit 50), cyclomatic complexity 16 (limit 8)
+	- 위치: test/mocks/MockStressTestManager.h:521
+- [12] analyze_trends - cyclomatic complexity 13 (limit 8)
+	- 위치: tools/quality_metrics/trend_analyzer.py:36
+- [13] MockSerialCommandHandler::processCommand - cyclomatic complexity 11 (limit 8)
+	- 위치: test/mocks/MockSerialCommandHandler.h:27
 
