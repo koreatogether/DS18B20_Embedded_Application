@@ -121,6 +121,52 @@ private:
             result.performanceRating = "POOR";
         }
     }
+    // --- Helper functions for Memory stress test ---
+    inline void simulateMemoryAllocations(const MemoryStressScenario &scenario, int &currentMemoryBytes, int &peakUsage, int &currentTimeMs)
+    {
+        for (int i = 0; i < scenario.allocationCount; i++)
+        {
+            currentMemoryBytes -= scenario.allocationSize;
+            if (currentMemoryBytes < peakUsage)
+            {
+                peakUsage = currentMemoryBytes;
+            }
+            currentTimeMs += 10;
+        }
+    }
+    inline void simulatePartialDeallocation(const MemoryStressScenario &scenario, int &currentMemoryBytes)
+    {
+        for (int i = scenario.deallocateAfter; i < scenario.allocationCount; i += 2)
+        {
+            currentMemoryBytes += scenario.allocationSize / 2;
+        }
+    }
+    inline void simulateFragmentation(const MemoryStressScenario &scenario, int &currentMemoryBytes)
+    {
+        if (scenario.enableFragmentation)
+        {
+            currentMemoryBytes -= 100;
+        }
+    }
+    inline void setMemoryPerformanceRating(StressTestResult &result)
+    {
+        if (result.operationsPerSecond > 100)
+        {
+            result.performanceRating = "EXCELLENT";
+        }
+        else if (result.operationsPerSecond > 50)
+        {
+            result.performanceRating = "GOOD";
+        }
+        else if (result.operationsPerSecond > 20)
+        {
+            result.performanceRating = "FAIR";
+        }
+        else
+        {
+            result.performanceRating = "POOR";
+        }
+    }
     std::vector<StressTestResult> testResults;
     int currentMemoryBytes;
     int initialMemoryBytes;
@@ -228,29 +274,9 @@ public:
         int startMemory = currentMemoryBytes;
         int peakUsage = currentMemoryBytes;
 
-        // 메모리 할당 시뮬레이션
-        for (int i = 0; i < scenario.allocationCount; i++)
-        {
-            currentMemoryBytes -= scenario.allocationSize;
-            if (currentMemoryBytes < peakUsage)
-            {
-                peakUsage = currentMemoryBytes;
-            }
-
-            // 부분적 해제 시뮬레이션
-            if (i >= scenario.deallocateAfter && i % 2 == 0)
-            {
-                currentMemoryBytes += scenario.allocationSize / 2; // 일부만 복구
-            }
-
-            currentTimeMs += 10; // 각 할당마다 10ms 소요
-        }
-
-        // 단편화 시뮬레이션 (추가 메모리 손실)
-        if (scenario.enableFragmentation)
-        {
-            currentMemoryBytes -= 100; // 단편화로 인한 추가 손실
-        }
+        simulateMemoryAllocations(scenario, currentMemoryBytes, peakUsage, currentTimeMs);
+        simulatePartialDeallocation(scenario, currentMemoryBytes);
+        simulateFragmentation(scenario, currentMemoryBytes);
 
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = scenario.allocationCount;
@@ -267,22 +293,7 @@ public:
                             (result.errorCount == 0);
 
         // 성능 등급 결정
-        if (result.operationsPerSecond > 100)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 50)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 20)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
+        setMemoryPerformanceRating(result);
 
         testResults.push_back(result);
         return result;
