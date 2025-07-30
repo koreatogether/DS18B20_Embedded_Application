@@ -18,6 +18,42 @@ from pathlib import Path
 from typing import Dict, Any
 
 class CodeMetricsCollector:
+    def _get_architecture_score(self):
+        if "architecture_metrics" in self.metrics:
+            return self.metrics["architecture_metrics"]["architecture_score"], 0.3
+        return None, None
+
+    def _get_test_score(self):
+        if "test_metrics" in self.metrics:
+            return self.metrics["test_metrics"]["test_success_rate"], 0.25
+        return None, None
+
+    def _get_build_score(self):
+        if "build_metrics" in self.metrics:
+            build_score = 0.0
+            if self.metrics["build_metrics"]["compilation_success"]:
+                build_score += 50.0
+            ram_score = max(0, 100 - self.metrics["build_metrics"]["ram_usage_percent"])
+            flash_score = max(0, 100 - self.metrics["build_metrics"]["flash_usage_percent"])
+            build_score += (ram_score + flash_score) / 4
+            return build_score, 0.2
+        return None, None
+
+    def _get_code_score(self):
+        if "code_metrics" in self.metrics:
+            code_score = 100.0
+            avg_complexity = self.metrics["code_metrics"].get("avg_complexity", 0)
+            if avg_complexity > 10:
+                code_score -= min(50, (avg_complexity - 10) * 5)
+            return code_score, 0.15
+        return None, None
+
+    def _get_docs_score(self):
+        docs_score = 50.0
+        if self.docs_dir.exists():
+            doc_files = len(list(self.docs_dir.rglob("*.md")))
+            docs_score = min(100.0, doc_files * 10)
+        return docs_score, 0.1
     def __init__(self, project_root: str):
         self.project_root = Path(project_root)
         self.src_dir = self.project_root / "src"
@@ -389,53 +425,15 @@ class CodeMetricsCollector:
         """종합 품질 점수 계산 (0-100)"""
         scores = []
         weights = []
-        
-        # 아키텍처 점수 (가중치: 30%)
-        if "architecture_metrics" in self.metrics:
-            scores.append(self.metrics["architecture_metrics"]["architecture_score"])
-            weights.append(0.3)
-        
-        # 테스트 점수 (가중치: 25%)
-        if "test_metrics" in self.metrics:
-            test_score = self.metrics["test_metrics"]["test_success_rate"]
-            scores.append(test_score)
-            weights.append(0.25)
-        
-        # 빌드 점수 (가중치: 20%)
-        if "build_metrics" in self.metrics:
-            build_score = 0.0
-            if self.metrics["build_metrics"]["compilation_success"]:
-                build_score += 50.0
-            # RAM/Flash 사용률이 낮을수록 좋음
-            ram_score = max(0, 100 - self.metrics["build_metrics"]["ram_usage_percent"])
-            flash_score = max(0, 100 - self.metrics["build_metrics"]["flash_usage_percent"])
-            build_score += (ram_score + flash_score) / 4
-            scores.append(build_score)
-            weights.append(0.2)
-        
-        # 코드 품질 점수 (가중치: 15%)
-        if "code_metrics" in self.metrics:
-            code_score = 100.0
-            avg_complexity = self.metrics["code_metrics"].get("avg_complexity", 0)
-            if avg_complexity > 10:  # 평균 복잡도가 10을 넘으면 감점
-                code_score -= min(50, (avg_complexity - 10) * 5)
-            scores.append(code_score)
-            weights.append(0.15)
-        
-        # 문서화 점수 (가중치: 10%)
-        docs_score = 50.0  # 기본값
-        if self.docs_dir.exists():
-            doc_files = len(list(self.docs_dir.rglob("*.md")))
-            docs_score = min(100.0, doc_files * 10)
-        scores.append(docs_score)
-        weights.append(0.1)
-        
-        # 가중 평균 계산
+        for getter in [self._get_architecture_score, self._get_test_score, self._get_build_score, self._get_code_score, self._get_docs_score]:
+            score, weight = getter()
+            if score is not None and weight is not None:
+                scores.append(score)
+                weights.append(weight)
         if scores and weights:
             weighted_sum = sum(score * weight for score, weight in zip(scores, weights))
             total_weight = sum(weights)
             return weighted_sum / total_weight if total_weight > 0 else 0.0
-        
         return 0.0
 
     def generate_report(self) -> str:
