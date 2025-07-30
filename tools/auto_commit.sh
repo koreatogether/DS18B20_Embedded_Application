@@ -17,8 +17,6 @@ fi
 
 
 
-# 3. doxygen 문서 자동 생성
-E:/utils/doxygen/doxygen.exe Doxyfile
 
 # 4. 민감정보(시크릿) 자동 검사 (git + filesystem)
 bash "$(dirname "$0")/trufflehog_gitscan.sh"
