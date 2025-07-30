@@ -1,3 +1,7 @@
+# 컴파일 로그 무시
+logs/comfile/
+logs/comfile/*
+logs/comfile/**
 # 로그 및 감지 결과 무시
 logs/
 logs/*
