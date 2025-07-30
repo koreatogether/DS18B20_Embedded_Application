@@ -26,38 +26,26 @@ public:
     // ICommandProcessor 인터페이스 구현 (실제 비즈니스 로직과 동일)
     std::string processCommand(const std::string &command) override
     {
+        using Handler = std::function<std::string()>;
+        static const std::map<std::string, Handler> handlers = {
+            {"help", [this]() { return getHelpMessage(); }},
+            {"menu", [this]() { return getHelpMessage(); }},
+            {"memory", [this]() { return _memoryAnalyzer->getFreeMemory(); }},
+            {"memory structure", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
+            {"mem struct", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
+            {"memory runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
+            {"mem runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
+            {"memory toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
+            {"mem toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
+            {"status", []() { return std::string("System Status: Running"); }}
+        };
         std::string response;
-
-        if (command == "help" || command == "menu")
-        {
-            response = getHelpMessage();
-        }
-        else if (command == "memory")
-        {
-            response = _memoryAnalyzer->getFreeMemory();
-        }
-        else if (command == "memory structure" || command == "mem struct")
-        {
-            response = _memoryAnalyzer->getStructureAnalysis();
-        }
-        else if (command == "memory runtime" || command == "mem runtime")
-        {
-            response = _memoryAnalyzer->getRuntimeAnalysis();
-        }
-        else if (command == "memory toggle" || command == "mem toggle")
-        {
-            response = _memoryAnalyzer->toggleMonitoring();
-        }
-        else if (command == "status")
-        {
-            response = "System Status: Running";
-        }
-        else
-        {
+        auto it = handlers.find(command);
+        if (it != handlers.end()) {
+            response = it->second();
+        } else {
             response = "Unknown command: " + command + ". Type 'help' for available commands.";
         }
-
-        // 테스트 검증을 위해 응답 저장
         _responses[command] = response;
         return response;
     }

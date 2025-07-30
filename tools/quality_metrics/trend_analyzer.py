@@ -33,17 +33,44 @@ class QualityTrendAnalyzer:
                 
         return metrics_history
     
+    def _compare_metrics(self, latest, previous, trends):
+        categories = ["code_metrics", "architecture_metrics", "test_metrics", "build_metrics"]
+        for category in categories:
+            if category in latest and category in previous:
+                trends["metrics_comparison"][category] = {
+                    "latest": latest[category],
+                    "previous": previous[category],
+                    "changes": {}
+                }
+                latest_cat = latest[category]
+                previous_cat = previous[category]
+                for key in latest_cat:
+                    if key in previous_cat and isinstance(latest_cat[key], (int, float)):
+                        change = latest_cat[key] - previous_cat[key]
+                        if abs(change) > 0.1:
+                            trends["metrics_comparison"][category]["changes"][key] = change
+
+    def _generate_recommendations(self, trends, latest, previous):
+        if trends["score_change"] > 5:
+            trends["recommendations"].append("✅ Quality score improved significantly!")
+        elif trends["score_change"] < -5:
+            trends["recommendations"].append("⚠️ Quality score decreased. Review recent changes.")
+
+    def _check_thresholds(self, trends, latest):
+        latest_test_rate = latest.get("test_metrics", {}).get("test_success_rate", 0)
+        if latest_test_rate < 95:
+            trends["recommendations"].append(f"🧪 Test success rate is {latest_test_rate}%. Fix failing tests.")
+        ram_usage = latest.get("build_metrics", {}).get("ram_usage_percent", 0)
+        if ram_usage > 80:
+            trends["recommendations"].append(f"💾 RAM usage is high ({ram_usage}%). Consider optimization.")
+
     def analyze_trends(self) -> Dict[str, Any]:
         """품질 메트릭 트렌드 분석"""
         history = self.load_historical_metrics()
-        
         if len(history) < 2:
             return {"message": "Not enough historical data for trend analysis"}
-        
-        # 최신 데이터와 이전 데이터 비교
         latest = history[-1]
         previous = history[-2]
-        
         trends = {
             "analysis_date": datetime.now().isoformat(),
             "data_points": len(history),
@@ -53,44 +80,9 @@ class QualityTrendAnalyzer:
             "metrics_comparison": {},
             "recommendations": []
         }
-        
-        # 세부 메트릭 비교
-        categories = ["code_metrics", "architecture_metrics", "test_metrics", "build_metrics"]
-        
-        for category in categories:
-            if category in latest and category in previous:
-                trends["metrics_comparison"][category] = {
-                    "latest": latest[category],
-                    "previous": previous[category],
-                    "changes": {}
-                }
-                
-                # 숫자 값들의 변화 추적
-                latest_cat = latest[category]
-                previous_cat = previous[category]
-                
-                for key in latest_cat:
-                    if key in previous_cat and isinstance(latest_cat[key], (int, float)):
-                        change = latest_cat[key] - previous_cat[key]
-                        if abs(change) > 0.1:  # 0.1 이상 변화가 있는 경우만 기록
-                            trends["metrics_comparison"][category]["changes"][key] = change
-        
-        # 권장사항 생성
-        if trends["score_change"] > 5:
-            trends["recommendations"].append("✅ Quality score improved significantly!")
-        elif trends["score_change"] < -5:
-            trends["recommendations"].append("⚠️ Quality score decreased. Review recent changes.")
-        
-        # 테스트 성공률 체크
-        latest_test_rate = latest.get("test_metrics", {}).get("test_success_rate", 0)
-        if latest_test_rate < 95:
-            trends["recommendations"].append(f"🧪 Test success rate is {latest_test_rate}%. Fix failing tests.")
-        
-        # 메모리 사용률 체크
-        ram_usage = latest.get("build_metrics", {}).get("ram_usage_percent", 0)
-        if ram_usage > 80:
-            trends["recommendations"].append(f"💾 RAM usage is high ({ram_usage}%). Consider optimization.")
-        
+        self._compare_metrics(latest, previous, trends)
+        self._generate_recommendations(trends, latest, previous)
+        self._check_thresholds(trends, latest)
         return trends
     
     def _trend_report_header(self, trends):
