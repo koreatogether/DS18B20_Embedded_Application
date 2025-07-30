@@ -36,18 +36,6 @@ jobs:
       - name: Show firmware size
         run: pio run -e uno_r4_wifi --target size
 
-      - name: Install Doxygen
-        uses: mattnotmitt/doxygen-action@v1
-
-      - name: Generate Doxygen Docs
-        run: doxygen Doxyfile
-
-      - name: Upload Doxygen Docs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: doxygen-docs
-          path: docs/api/html/
 
       - name: Upload build artifacts
         if: always()

@@ -21,3 +21,8 @@ Thumbs.db
 
 # 기타
 *.log
+*.sh
+*.ps1
+*.bat
+*.cmd
+*.ini
