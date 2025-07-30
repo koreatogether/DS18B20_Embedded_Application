@@ -21,6 +21,7 @@ Thumbs.db
 
 # 기타
 *.log
+*.exe
 *.sh
 *.ps1
 *.bat
