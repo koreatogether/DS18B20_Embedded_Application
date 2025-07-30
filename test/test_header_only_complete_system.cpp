@@ -1,3 +1,4 @@
+#include "mocks/MockLongRunStabilityManager.h"
 #include <unity.h>
 #include "mocks/MockMemoryMonitorService.h"
 #include "mocks/MockSerialCommandHandler.h"
@@ -14,6 +15,9 @@ MockSerialCommandHandler *commandHandler;
 MockMemoryLeakDetector *leakDetector;
 MockStressTestManager *stressManager;
 std::shared_ptr<MockMemoryMonitorService> memoryServicePtr;
+
+// 롱런 스테빌리티 테스트용 객체 (각 테스트에서 new/delete)
+MockLongRunStabilityManager *stabilityManager;
 
 void setUp(void)
 {
@@ -32,6 +36,101 @@ void tearDown(void)
     delete leakDetector;
     delete stressManager;
     // memoryService는 shared_ptr에 의해 자동으로 삭제됨
+}
+
+void test_long_run_stability_no_error_no_leak()
+{
+    // Given: 7일(604800초) 동안 정상 동작, 5분(300회)만에 가상 시간 스케일로 테스트
+    const int virtualTotalSec = 604800; // 7일
+    const int fastIterations = 300;     // 5분
+    const int secPerIter = virtualTotalSec / fastIterations;
+    stabilityManager = new MockLongRunStabilityManager();
+    stabilityManager->start(2048, 16);
+    for (int i = 0; i < fastIterations; ++i)
+    {
+        stabilityManager->simulateIteration(2048 - (i % 3)); // 약간의 변동만
+    }
+    stabilityManager->stop();
+    LongRunStabilityResult result = stabilityManager->analyze();
+    TEST_ASSERT_EQUAL_STRING("LongRunStabilityTest", result.testName.c_str());
+    TEST_ASSERT_EQUAL(fastIterations, result.totalIterations);
+    TEST_ASSERT_EQUAL(0, result.errorCount);
+    TEST_ASSERT_EQUAL(0, result.memoryLeakCount);
+    TEST_ASSERT_TRUE(result.passed);
+    delete stabilityManager;
+}
+
+void test_long_run_stability_with_errors()
+{
+    // Given: 7일 중 10회 에러 발생, 5분(300회)만에 가상 시간 스케일로 테스트
+    const int fastIterations = 300;
+    stabilityManager = new MockLongRunStabilityManager();
+    stabilityManager->start(2048, 16);
+    for (int i = 1; i <= fastIterations; ++i)
+    {
+        bool error = (i % 30 == 0); // 300회 중 10회
+        stabilityManager->simulateIteration(2048 - (i % 3), error);
+    }
+    LongRunStabilityResult result = stabilityManager->analyze();
+    TEST_ASSERT_EQUAL(10, result.errorCount);
+    TEST_ASSERT_FALSE(result.passed);
+    delete stabilityManager;
+}
+
+void test_long_run_stability_with_leaks()
+{
+    // Given: 7일 중 5회 메모리 누수(20바이트 이상 감소), 5분(300회)만에 가상 시간 스케일로 테스트
+    const int fastIterations = 300;
+    stabilityManager = new MockLongRunStabilityManager();
+    stabilityManager->start(2048, 16);
+    int mem = 2048;
+    for (int i = 0; i < fastIterations; ++i)
+    {
+        // 60, 120, 180, 240, 299에서 누수 발생 (마지막 반복 포함)
+        if ((i != 0) && (i % 60 == 0 || i == fastIterations - 1))
+            mem -= 20;
+        stabilityManager->simulateIteration(mem - (i % 2));
+    }
+    stabilityManager->stop();
+    LongRunStabilityResult result = stabilityManager->analyze();
+    TEST_ASSERT_EQUAL(5, result.memoryLeakCount);
+    TEST_ASSERT_FALSE(result.passed);
+    delete stabilityManager;
+}
+
+void test_long_run_stability_short_run()
+{
+    // Given: 1일(86400초)만 실행, 5분(60회)만에 가상 시간 스케일로 테스트
+    const int fastIterations = 60;
+    stabilityManager = new MockLongRunStabilityManager();
+    stabilityManager->start(2048, 16);
+    for (int i = 0; i < fastIterations; ++i)
+    {
+        stabilityManager->simulateIteration(2048 - (i % 2));
+    }
+    stabilityManager->stop();
+    LongRunStabilityResult result = stabilityManager->analyze();
+    TEST_ASSERT_EQUAL(fastIterations, result.totalIterations);
+    TEST_ASSERT_TRUE(result.passed);
+    delete stabilityManager;
+}
+
+void test_long_run_stability_summary_format()
+{
+    // Given: 정상 시나리오(5분 50회)
+    const int fastIterations = 50;
+    stabilityManager = new MockLongRunStabilityManager();
+    stabilityManager->start(2048, 16);
+    for (int i = 0; i < fastIterations; ++i)
+    {
+        stabilityManager->simulateIteration(2048 - (i % 2));
+    }
+    stabilityManager->stop();
+    LongRunStabilityResult result = stabilityManager->analyze();
+    TEST_ASSERT_TRUE(result.summary.find("Duration:") != std::string::npos);
+    TEST_ASSERT_TRUE(result.summary.find("Errors:") != std::string::npos);
+    TEST_ASSERT_TRUE(result.summary.find("Leaks:") != std::string::npos);
+    delete stabilityManager;
 }
 
 // ===== MemoryMonitorService Tests =====
@@ -511,6 +610,14 @@ void test_stress_manager_scenario_counts()
 
 int main(int argc, char **argv)
 {
+    UNITY_BEGIN();
+
+    // Long Run Stability Tests
+    RUN_TEST(test_long_run_stability_no_error_no_leak);
+    RUN_TEST(test_long_run_stability_with_errors);
+    RUN_TEST(test_long_run_stability_with_leaks);
+    RUN_TEST(test_long_run_stability_short_run);
+    RUN_TEST(test_long_run_stability_summary_format);
     UNITY_BEGIN();
 
     // MemoryMonitorService Tests
