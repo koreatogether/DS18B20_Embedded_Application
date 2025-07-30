@@ -286,60 +286,16 @@ class CodeMetricsCollector:
         # 최근 테스트 결과 읽기
         if test_log_path.exists():
             try:
-                # 여러 인코딩 방식 시도 (UTF-16 BOM 포함)
-                for encoding in ['utf-16', 'utf-8', 'latin-1', 'cp1252']:
-                    try:
-                        with open(test_log_path, 'r', encoding=encoding) as f:
-                            content = f.read()
-                        print(f"✅ Successfully decoded with {encoding}")
-                        break
-                    except UnicodeDecodeError:
-                        continue
-                else:
-                    print("❌ Could not decode test log file")
+                content = self._decode_test_log(test_log_path)
+                if content is None:
                     return metrics
-                
                 print(f"📋 Reading test log: {test_log_path}")
                 print(f"📄 Content preview: {content[:500]}")  # 처음 500글자 출력
                 
-                # Unity 테스트 결과 파싱 (PlatformIO 형식)
-                # "16 Tests 0 Failures 0 Ignored" 패턴 찾기
-                test_match = re.search(r'(\d+) Tests (\d+) Failures (\d+) Ignored', content)
-                print(f"🔍 Regex match result: {test_match}")
-                
-                if test_match:
-                    total_tests = int(test_match.group(1))
-                    failures = int(test_match.group(2))
-                    passed = total_tests - failures
-                    
-                    metrics["test_cases"] = total_tests
-                    metrics["passed_tests"] = passed
-                    metrics["failed_tests"] = failures
-                    
-                    if total_tests > 0:
-                        metrics["test_success_rate"] = (passed / total_tests) * 100
-                    
-                    print(f"✅ Found test results: {total_tests} tests, {passed} passed, {failures} failed")
-                else:
-                    print("❌ Could not parse test results")
-                    # 다른 패턴들 시도
-                    alt_patterns = [
-                        r'(\d+) test cases: (\d+) succeeded',
-                        r'Tests run: (\d+), Failures: (\d+)',
-                        r'SUMMARY.*(\d+) succeeded.*(\d+) failed'
-                    ]
-                    for pattern in alt_patterns:
-                        alt_match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
-                        if alt_match:
-                            print(f"📝 Alternative pattern matched: {pattern}")
-                            break
-                
-                # 실행 시간 추출 ("Took 0.86 seconds" 패턴)
-                time_match = re.search(r'Took (\d+\.\d+) seconds', content)
-                if time_match:
-                    metrics["execution_time"] = float(time_match.group(1))
-                    print(f"⏱️ Execution time: {metrics['execution_time']}s")
-                    
+                found = self._parse_unity_test_results(content, metrics)
+                if not found:
+                    found = self._parse_alternative_test_results(content, metrics)
+                self._parse_test_execution_time(content, metrics)
             except Exception as e:
                 print(f"❌ Error reading test log: {e}")
                 pass
@@ -352,6 +308,62 @@ class CodeMetricsCollector:
             metrics["coverage_estimate"] = min(100.0, (metrics["test_files"] / source_files) * 100)
         
         return metrics
+
+    def _decode_test_log(self, test_log_path):
+        for encoding in ['utf-16', 'utf-8', 'latin-1', 'cp1252']:
+            try:
+                with open(test_log_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                print(f"✅ Successfully decoded with {encoding}")
+                return content
+            except UnicodeDecodeError:
+                continue
+        print("❌ Could not decode test log file")
+        return None
+
+    def _parse_unity_test_results(self, content, metrics):
+        import re
+        test_match = re.search(r'(\d+) Tests (\d+) Failures (\d+) Ignored', content)
+        print(f"🔍 Regex match result: {test_match}")
+        if test_match:
+            total_tests = int(test_match.group(1))
+            failures = int(test_match.group(2))
+            passed = total_tests - failures
+            metrics["test_cases"] = total_tests
+            metrics["passed_tests"] = passed
+            metrics["failed_tests"] = failures
+            if total_tests > 0:
+                metrics["test_success_rate"] = (passed / total_tests) * 100
+            print(f"✅ Found test results: {total_tests} tests, {passed} passed, {failures} failed")
+            return True
+        return False
+
+    def _parse_alternative_test_results(self, content, metrics):
+        import re
+        alt_patterns = [
+            r'(\d+) test cases: (\d+) succeeded',
+            r'Tests run: (\d+), Failures: (\d+)',
+            r'SUMMARY.*(\d+) succeeded.*(\d+) failed'
+        ]
+        for pattern in alt_patterns:
+            alt_match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
+            if alt_match:
+                print(f"📝 Alternative pattern matched: {pattern}")
+                # 간단 예시: 첫 번째 그룹을 test_cases, 두 번째를 passed로 가정
+                metrics["test_cases"] = int(alt_match.group(1))
+                metrics["passed_tests"] = int(alt_match.group(2))
+                metrics["failed_tests"] = metrics["test_cases"] - metrics["passed_tests"]
+                if metrics["test_cases"] > 0:
+                    metrics["test_success_rate"] = (metrics["passed_tests"] / metrics["test_cases"]) * 100
+                return True
+        return False
+
+    def _parse_test_execution_time(self, content, metrics):
+        import re
+        time_match = re.search(r'Took (\d+\.\d+) seconds', content)
+        if time_match:
+            metrics["execution_time"] = float(time_match.group(1))
+            print(f"⏱️ Execution time: {metrics['execution_time']}s")
 
     def collect_build_metrics(self) -> Dict[str, Any]:
         """빌드 메트릭 수집"""
@@ -371,54 +383,51 @@ class CodeMetricsCollector:
         
         if build_log_path.exists():
             try:
-                # 여러 인코딩 방식 시도 (UTF-16 BOM 포함)
-                for encoding in ['utf-16', 'utf-8', 'latin-1', 'cp1252']:
-                    try:
-                        with open(build_log_path, 'r', encoding=encoding) as f:
-                            content = f.read()
-                        print(f"✅ Successfully decoded build log with {encoding}")
-                        break
-                    except UnicodeDecodeError:
-                        continue
-                else:
-                    print("❌ Could not decode build log file")
+                content = self._decode_build_log(build_log_path)
+                if content is None:
                     return metrics
-                
                 print(f"📋 Reading build log: {build_log_path}")
-                
-                # 메모리 사용량 파싱
-                ram_match = re.search(r'RAM:\s+\[.*?\]\s+(\d+\.\d+)%', content)
-                if ram_match:
-                    metrics["ram_usage_percent"] = float(ram_match.group(1))
-                    print(f"💾 RAM Usage: {metrics['ram_usage_percent']}%")
-                
-                flash_match = re.search(r'Flash:\s+\[.*?\]\s+(\d+\.\d+)%', content)
-                if flash_match:
-                    metrics["flash_usage_percent"] = float(flash_match.group(1))
-                    print(f"💽 Flash Usage: {metrics['flash_usage_percent']}%")
-                
-                # 컴파일 성공 여부
-                if "SUCCESS" in content:
-                    metrics["compilation_success"] = True
-                    print("✅ Compilation: SUCCESS")
-                else:
-                    print("❌ Compilation: FAILED")
-                
-                # 경고/오류 개수 (간단한 추정)
-                metrics["warnings_count"] = content.count("warning:")
-                metrics["errors_count"] = content.count("error:")
-                
-                if metrics["warnings_count"] > 0:
-                    print(f"⚠️ Warnings: {metrics['warnings_count']}")
-                if metrics["errors_count"] > 0:
-                    print(f"🚨 Errors: {metrics['errors_count']}")
-                
+                self._parse_build_log_metrics(content, metrics)
             except Exception as e:
                 print(f"❌ Error reading build log: {e}")
-                pass
         else:
             print(f"❌ Build log not found: {build_log_path}")
         
+        return metrics
+
+    def _decode_build_log(self, build_log_path):
+        for encoding in ['utf-16', 'utf-8', 'latin-1', 'cp1252']:
+            try:
+                with open(build_log_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                print(f"✅ Successfully decoded build log with {encoding}")
+                return content
+            except UnicodeDecodeError:
+                continue
+        print("❌ Could not decode build log file")
+        return None
+
+    def _parse_build_log_metrics(self, content, metrics):
+        import re
+        ram_match = re.search(r'RAM:\s+\[.*?\]\s+(\d+\.\d+)%', content)
+        if ram_match:
+            metrics["ram_usage_percent"] = float(ram_match.group(1))
+            print(f"💾 RAM Usage: {metrics['ram_usage_percent']}%")
+        flash_match = re.search(r'Flash:\s+\[.*?\]\s+(\d+\.\d+)%', content)
+        if flash_match:
+            metrics["flash_usage_percent"] = float(flash_match.group(1))
+            print(f"💽 Flash Usage: {metrics['flash_usage_percent']}%")
+        if "SUCCESS" in content:
+            metrics["compilation_success"] = True
+            print("✅ Compilation: SUCCESS")
+        else:
+            print("❌ Compilation: FAILED")
+        metrics["warnings_count"] = content.count("warning:")
+        metrics["errors_count"] = content.count("error:")
+        if metrics["warnings_count"] > 0:
+            print(f"⚠️ Warnings: {metrics['warnings_count']}")
+        if metrics["errors_count"] > 0:
+            print(f"🚨 Errors: {metrics['errors_count']}")
         return metrics
 
     def calculate_quality_score(self) -> float:
