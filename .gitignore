@@ -23,6 +23,9 @@ __pycache__/
 *.bin
 *.hex
 
+# Python 가상환경 무시(25.07.31 아침에 등록 )
+.venv/
+
 # OS/Editor
 .DS_Store
 Thumbs.db
