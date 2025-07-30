@@ -246,7 +246,8 @@ class CodeMetricsCollector:
                         lines = len(f.readlines())
                     if lines > 200:  # 200라인 이상은 큰 파일로 간주
                         large_files.append({"file": str(file_path.name), "lines": lines})
-                except Exception:
+                except Exception as e:
+                    print(f"Error processing file {file_path}: {e}")
                     continue
         
         # 큰 파일이 적을수록 높은 점수
