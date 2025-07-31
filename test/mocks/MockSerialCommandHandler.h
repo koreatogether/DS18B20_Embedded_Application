@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <functional>
 
 /**
  * @class MockSerialCommandHandler
@@ -18,32 +19,37 @@ class MockSerialCommandHandler : public ICommandProcessor
 private:
     std::shared_ptr<MockMemoryMonitorService> _memoryAnalyzer;
     std::map<std::string, std::string> _responses; // 테스트용 응답 저장
+    using HandlerFunc = std::string (MockSerialCommandHandler::*)();
+    std::map<std::string, HandlerFunc> _handlerMap;
 
 public:
     MockSerialCommandHandler(std::shared_ptr<MockMemoryMonitorService> memoryAnalyzer)
-        : _memoryAnalyzer(memoryAnalyzer) {}
+        : _memoryAnalyzer(memoryAnalyzer)
+    {
+        // 핸들러 맵 초기화 (this 캡처 없이 멤버 함수 포인터 사용)
+        _handlerMap["help"] = &MockSerialCommandHandler::getHelpMessageHandler;
+        _handlerMap["menu"] = &MockSerialCommandHandler::getHelpMessageHandler;
+        _handlerMap["memory"] = &MockSerialCommandHandler::getFreeMemoryHandler;
+        _handlerMap["memory structure"] = &MockSerialCommandHandler::getStructureAnalysisHandler;
+        _handlerMap["mem struct"] = &MockSerialCommandHandler::getStructureAnalysisHandler;
+        _handlerMap["memory runtime"] = &MockSerialCommandHandler::getRuntimeAnalysisHandler;
+        _handlerMap["mem runtime"] = &MockSerialCommandHandler::getRuntimeAnalysisHandler;
+        _handlerMap["memory toggle"] = &MockSerialCommandHandler::getToggleMonitoringHandler;
+        _handlerMap["mem toggle"] = &MockSerialCommandHandler::getToggleMonitoringHandler;
+        _handlerMap["status"] = &MockSerialCommandHandler::getStatusHandler;
+    }
 
     // ICommandProcessor 인터페이스 구현 (실제 비즈니스 로직과 동일)
     std::string processCommand(const std::string &command) override
     {
-        using Handler = std::function<std::string()>;
-        static const std::map<std::string, Handler> handlers = {
-            {"help", [this]() { return getHelpMessage(); }},
-            {"menu", [this]() { return getHelpMessage(); }},
-            {"memory", [this]() { return _memoryAnalyzer->getFreeMemory(); }},
-            {"memory structure", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"mem struct", [this]() { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"memory runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"mem runtime", [this]() { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"memory toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"mem toggle", [this]() { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"status", []() { return std::string("System Status: Running"); }}
-        };
         std::string response;
-        auto it = handlers.find(command);
-        if (it != handlers.end()) {
-            response = it->second();
-        } else {
+        auto it = _handlerMap.find(command);
+        if (it != _handlerMap.end())
+        {
+            response = (this->*(it->second))();
+        }
+        else
+        {
             response = "Unknown command: " + command + ". Type 'help' for available commands.";
         }
         _responses[command] = response;
@@ -60,6 +66,13 @@ public:
     void clearResponses() { _responses.clear(); }
 
 private:
+    std::string getHelpMessageHandler() { return getHelpMessage(); }
+    std::string getFreeMemoryHandler() { return _memoryAnalyzer ? _memoryAnalyzer->getFreeMemory() : "No analyzer"; }
+    std::string getStructureAnalysisHandler() { return _memoryAnalyzer ? _memoryAnalyzer->getStructureAnalysis() : "No analyzer"; }
+    std::string getRuntimeAnalysisHandler() { return _memoryAnalyzer ? _memoryAnalyzer->getRuntimeAnalysis() : "No analyzer"; }
+    std::string getToggleMonitoringHandler() { return _memoryAnalyzer ? _memoryAnalyzer->toggleMonitoring() : "No analyzer"; }
+    std::string getStatusHandler() { return "System Status: Running"; }
+
     std::string getHelpMessage()
     {
         return "Available commands:\n"
