@@ -11,68 +11,10 @@ inline bool isTestPassed(int durationMs, int expectedDurationMs)
 #include <vector>
 #include <cstring>
 #include <cstdio>
-
-// 스트레스 테스트 결과 구조체
-struct StressTestResult
-{
-    std::string testName;
-    int durationMs;
-    int operationsPerformed;
-    int memoryUsedBytes;
-    int peakMemoryUsage;
-    int errorCount;
-    bool testPassed;
-    double operationsPerSecond;
-    double memoryEfficiency;
-    std::string performanceRating;
-
-    StressTestResult() : testName(""), durationMs(0), operationsPerformed(0),
-                         memoryUsedBytes(0), peakMemoryUsage(0), errorCount(0),
-                         testPassed(false), operationsPerSecond(0.0),
-                         memoryEfficiency(0.0), performanceRating("UNKNOWN") {}
-};
-
-// 메모리 압박 시나리오 구조체
-struct MemoryStressScenario
-{
-    std::string scenarioName;
-    int allocationSize;
-    int allocationCount;
-    int deallocateAfter;
-    int expectedMemoryDrop;
-    bool enableFragmentation;
-
-    MemoryStressScenario() : scenarioName(""), allocationSize(0), allocationCount(0),
-                             deallocateAfter(0), expectedMemoryDrop(0), enableFragmentation(false) {}
-};
-
-// CPU 부하 시나리오 구조체
-struct CpuStressScenario
-{
-    std::string scenarioName;
-    int cpuIntensiveLoops;
-    int mathCalculations;
-    int stringOperations;
-    int expectedDurationMs;
-    double targetCpuUsage;
-
-    CpuStressScenario() : scenarioName(""), cpuIntensiveLoops(0), mathCalculations(0),
-                          stringOperations(0), expectedDurationMs(0), targetCpuUsage(0.0) {}
-};
-
-// I/O 스트레스 시나리오 구조체
-struct IoStressScenario
-{
-    std::string scenarioName;
-    int serialWriteOperations;
-    int serialReadOperations;
-    int sensorReadOperations;
-    int expectedLatencyMs;
-    bool simulateErrors;
-
-    IoStressScenario() : scenarioName(""), serialWriteOperations(0), serialReadOperations(0),
-                         sensorReadOperations(0), expectedLatencyMs(0), simulateErrors(false) {}
-};
+#include "scenario/StressTestResult.h"
+#include "scenario/MemoryStressScenario.h"
+#include "scenario/CpuStressScenario.h"
+#include "scenario/IoStressScenario.h"
 
 class MockStressTestManager
 {

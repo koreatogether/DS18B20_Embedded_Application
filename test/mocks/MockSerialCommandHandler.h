@@ -42,33 +42,15 @@ public:
     // ICommandProcessor 인터페이스 구현 (실제 비즈니스 로직과 동일)
     std::string processCommand(const std::string &command) override
     {
-        using Handler = std::function<std::string()>;
-        static const std::map<std::string, Handler> handlers = {
-            {"help", [this]()
-             { return getHelpMessage(); }},
-            {"menu", [this]()
-             { return getHelpMessage(); }},
-            {"memory", [this]()
-             { return _memoryAnalyzer->getFreeMemory(); }},
-            {"memory structure", [this]()
-             { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"mem struct", [this]()
-             { return _memoryAnalyzer->getStructureAnalysis(); }},
-            {"memory runtime", [this]()
-             { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"mem runtime", [this]()
-             { return _memoryAnalyzer->getRuntimeAnalysis(); }},
-            {"memory toggle", [this]()
-             { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"mem toggle", [this]()
-             { return _memoryAnalyzer->toggleMonitoring(); }},
-            {"status", []()
-             { return std::string("System Status: Running"); }}};
         std::string response;
-        auto it = handlers.find(command);
-        if (it != handlers.end())
+        auto it = _handlerMap.find(command);
+        if (it != _handlerMap.end())
         {
-            response = it->second();
+            response = (this->*it->second)();
+        }
+        else if (command == "status")
+        {
+            response = "System Status: Running";
         }
         else
         {
