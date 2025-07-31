@@ -11,160 +11,19 @@ inline bool isTestPassed(int durationMs, int expectedDurationMs)
 #include <vector>
 #include <cstring>
 #include <cstdio>
+
 #include "scenario/StressTestResult.h"
 #include "scenario/MemoryStressScenario.h"
 #include "scenario/CpuStressScenario.h"
 #include "scenario/IoStressScenario.h"
+#include "utils/MemoryStressHelper.h"
+#include "utils/CpuStressHelper.h"
+#include "utils/IoStressHelper.h"
+#include "utils/SystemStabilityHelper.h"
 
 class MockStressTestManager
 {
 private:
-    // --- Helper functions for CPU stress test ---
-    inline void simulateCpuLoops(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.cpuIntensiveLoops; i++)
-        {
-            operations++;
-            currentTimeMs += 1;
-        }
-    }
-    inline void simulateMathCalculations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.mathCalculations; i++)
-        {
-            operations++;
-            currentTimeMs += 2;
-        }
-    }
-    inline void simulateStringOperations(const CpuStressScenario &scenario, int &operations, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.stringOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 3;
-        }
-    }
-    inline void setPerformanceRating(StressTestResult &result)
-    {
-        if (result.operationsPerSecond > 1000)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 500)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 200)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-    }
-    // --- Helper functions for Memory stress test ---
-    inline void simulateMemoryAllocations(const MemoryStressScenario &scenario, int &currentMemoryBytes, int &peakUsage, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.allocationCount; i++)
-        {
-            currentMemoryBytes -= scenario.allocationSize;
-            if (currentMemoryBytes < peakUsage)
-            {
-                peakUsage = currentMemoryBytes;
-            }
-            currentTimeMs += 10;
-        }
-    }
-    inline void simulatePartialDeallocation(const MemoryStressScenario &scenario, int &currentMemoryBytes)
-    {
-        for (int i = scenario.deallocateAfter; i < scenario.allocationCount; i += 2)
-        {
-            currentMemoryBytes += scenario.allocationSize / 2;
-        }
-    }
-    inline void simulateFragmentation(const MemoryStressScenario &scenario, int &currentMemoryBytes)
-    {
-        if (scenario.enableFragmentation)
-        {
-            currentMemoryBytes -= 100;
-        }
-    }
-    inline void setMemoryPerformanceRating(StressTestResult &result)
-    {
-        if (result.operationsPerSecond > 100)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 50)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 20)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-    }
-    // --- Helper functions for IO stress test ---
-    inline void simulateSerialWrite(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.serialWriteOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 5;
-            if (scenario.simulateErrors && i % 50 == 0)
-            {
-                errors++;
-            }
-        }
-    }
-    inline void simulateSerialRead(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.serialReadOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 8;
-            if (scenario.simulateErrors && i % 30 == 0)
-            {
-                errors++;
-            }
-        }
-    }
-    inline void simulateSensorRead(const IoStressScenario &scenario, int &operations, int &errors, int &currentTimeMs)
-    {
-        for (int i = 0; i < scenario.sensorReadOperations; i++)
-        {
-            operations++;
-            currentTimeMs += 15;
-            if (scenario.simulateErrors && i % 20 == 0)
-            {
-                errors++;
-            }
-        }
-    }
-    inline void setIoPerformanceRating(StressTestResult &result, double errorRate)
-    {
-        if (result.operationsPerSecond > 100 && errorRate < 0.02)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (result.operationsPerSecond > 50 && errorRate < 0.05)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (result.operationsPerSecond > 20 && errorRate < 0.10)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-    }
     std::vector<StressTestResult> testResults;
     int currentMemoryBytes;
     int initialMemoryBytes;
@@ -272,9 +131,9 @@ public:
         int startMemory = currentMemoryBytes;
         int peakUsage = currentMemoryBytes;
 
-        simulateMemoryAllocations(scenario, currentMemoryBytes, peakUsage, currentTimeMs);
-        simulatePartialDeallocation(scenario, currentMemoryBytes);
-        simulateFragmentation(scenario, currentMemoryBytes);
+        MemoryStressHelper::simulateMemoryAllocations(scenario, currentMemoryBytes, peakUsage, currentTimeMs);
+        MemoryStressHelper::simulatePartialDeallocation(scenario, currentMemoryBytes);
+        MemoryStressHelper::simulateFragmentation(scenario, currentMemoryBytes);
 
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = scenario.allocationCount;
@@ -291,7 +150,7 @@ public:
                             (result.errorCount == 0);
 
         // 성능 등급 결정
-        setMemoryPerformanceRating(result);
+        MemoryStressHelper::setMemoryPerformanceRating(result);
 
         testResults.push_back(result);
         return result;
@@ -311,9 +170,9 @@ public:
         result.testName = "CPU_" + scenario.scenarioName;
         int startTime = currentTimeMs;
         int operations = 0;
-        simulateCpuLoops(scenario, operations, currentTimeMs);
-        simulateMathCalculations(scenario, operations, currentTimeMs);
-        simulateStringOperations(scenario, operations, currentTimeMs);
+        CpuStressHelper::simulateCpuLoops(scenario, operations, currentTimeMs);
+        CpuStressHelper::simulateMathCalculations(scenario, operations, currentTimeMs);
+        CpuStressHelper::simulateStringOperations(scenario, operations, currentTimeMs);
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = operations;
         result.memoryUsedBytes = operations / 10;
@@ -322,7 +181,7 @@ public:
         result.operationsPerSecond = (result.durationMs > 0) ? (result.operationsPerformed * 1000.0) / result.durationMs : 0.0;
         result.memoryEfficiency = (result.memoryUsedBytes > 0) ? (double)result.operationsPerformed / result.memoryUsedBytes : 100.0;
         result.testPassed = isTestPassed(result.durationMs, scenario.expectedDurationMs);
-        setPerformanceRating(result);
+        CpuStressHelper::setPerformanceRating(result);
         testResults.push_back(result);
         return result;
     }
@@ -342,9 +201,9 @@ public:
         int startTime = currentTimeMs;
         int operations = 0;
         int errors = 0;
-        simulateSerialWrite(scenario, operations, errors, currentTimeMs);
-        simulateSerialRead(scenario, operations, errors, currentTimeMs);
-        simulateSensorRead(scenario, operations, errors, currentTimeMs);
+        IoStressHelper::simulateSerialWrite(scenario, operations, errors, currentTimeMs);
+        IoStressHelper::simulateSerialRead(scenario, operations, errors, currentTimeMs);
+        IoStressHelper::simulateSensorRead(scenario, operations, errors, currentTimeMs);
         result.durationMs = currentTimeMs - startTime;
         result.operationsPerformed = operations;
         result.memoryUsedBytes = operations / 5;
@@ -355,7 +214,7 @@ public:
         int latencyTolerance = scenario.expectedLatencyMs * 30 / 100;
         double errorRate = (operations > 0) ? (double)errors / operations : 0.0;
         result.testPassed = (result.durationMs <= (scenario.expectedLatencyMs + latencyTolerance)) && (errorRate <= 0.1);
-        setIoPerformanceRating(result, errorRate);
+        IoStressHelper::setIoPerformanceRating(result, errorRate);
         testResults.push_back(result);
         return result;
     }
@@ -474,48 +333,7 @@ public:
 
     // 특정 부하 수준에서 시스템 안정성 테스트
     // --- Helper functions for System Stability Test ---
-    inline void simulateMemoryPressure(int i, int &errors)
-    {
-        if (i % 100 == 0)
-        {
-            currentMemoryBytes -= 10;
-            if (currentMemoryBytes < 100)
-            {
-                errors++;
-                currentMemoryBytes = 100;
-            }
-        }
-    }
-    inline void simulateCpuLoad(int loadLevel)
-    {
-        currentTimeMs += (loadLevel > 5) ? 2 : 1;
-    }
-    inline void simulateMemoryRecovery(int i)
-    {
-        if (i % 500 == 0)
-        {
-            currentMemoryBytes += 50;
-        }
-    }
-    inline void setSystemStabilityPerformanceRating(StressTestResult &result, double errorRate)
-    {
-        if (errorRate < 0.01 && result.operationsPerSecond > 100)
-        {
-            result.performanceRating = "EXCELLENT";
-        }
-        else if (errorRate < 0.03 && result.operationsPerSecond > 50)
-        {
-            result.performanceRating = "GOOD";
-        }
-        else if (errorRate < 0.05 && result.operationsPerSecond > 20)
-        {
-            result.performanceRating = "FAIR";
-        }
-        else
-        {
-            result.performanceRating = "POOR";
-        }
-    }
+    // System stability helpers moved to SystemStabilityHelper.h
     // ...existing code...
     inline StressTestResult runSystemStabilityTest(int loadLevel)
     {
@@ -532,9 +350,9 @@ public:
         for (int i = 0; i < totalOperations; i++)
         {
             operations++;
-            simulateMemoryPressure(i, errors);
-            simulateCpuLoad(loadLevel);
-            simulateMemoryRecovery(i);
+            SystemStabilityHelper::simulateMemoryPressure(currentMemoryBytes, i, errors);
+            SystemStabilityHelper::simulateCpuLoad(currentTimeMs, loadLevel);
+            SystemStabilityHelper::simulateMemoryRecovery(currentMemoryBytes, i);
         }
 
         result.durationMs = currentTimeMs - startTime;
@@ -548,7 +366,7 @@ public:
 
         double errorRate = (operations > 0) ? (double)errors / operations : 0.0;
         result.testPassed = (errorRate <= 0.05) && (currentMemoryBytes > 200);
-        setSystemStabilityPerformanceRating(result, errorRate);
+        SystemStabilityHelper::setSystemStabilityPerformanceRating(result, errorRate);
         testResults.push_back(result);
         return result;
     }
