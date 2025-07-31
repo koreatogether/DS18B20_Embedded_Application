@@ -26,6 +26,14 @@ __pycache__/
 # Python 가상환경 무시(25.07.31 아침에 등록 )
 .venv/
 
+# Git 내부 객체 및 테스트/샘플/민감정보 경로 무시
+.git/objects/
+.git/objects/**
+test/fixtures/
+test/fixtures/**
+.venv/Lib/site-packages/git/test/fixtures/
+.venv/Lib/site-packages/git/test/fixtures/**
+
 # OS/Editor
 .DS_Store
 Thumbs.db
